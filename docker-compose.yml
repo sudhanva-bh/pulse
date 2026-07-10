@@ -23,7 +23,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-password}@db/pulse
+      - DATABASE_URL=postgresql://postgres:password@db:5432/pulse
       - WATCHFILES_FORCE_POLLING=true
     volumes:
       - .:/app

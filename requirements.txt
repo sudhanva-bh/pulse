@@ -7,3 +7,6 @@ python-jose
 passlib
 python-dotenv
 watchfiles
+pydantic[email]
+pydantic-settings
+python-multipart

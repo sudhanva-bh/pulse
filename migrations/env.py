@@ -16,6 +16,11 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
+import os
+from dotenv import load_dotenv
+load_dotenv()
+config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+
 from app.database import Base
 import app.models  # This ensures models are imported and registered on Base.metadata
 target_metadata = Base.metadata

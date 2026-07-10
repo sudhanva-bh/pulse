@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+from app.routers import auth
 
-app = FastAPI(title="Pulse API")
+app = FastAPI(title="Pulse API", version="0.1.0")
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Pulse API"}
+app.include_router(auth.router)
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
