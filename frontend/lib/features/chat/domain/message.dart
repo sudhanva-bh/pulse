@@ -1,6 +1,7 @@
 enum MessageStatus {
   pending,
   sending,
+  sent,
   delivered,
   read,
   failed,

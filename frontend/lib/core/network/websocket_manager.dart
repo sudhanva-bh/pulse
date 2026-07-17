@@ -84,6 +84,8 @@ class WebSocketManager {
         _typingController.add(payload);
       } else if (type == 'conversation_update') {
         _handleConversationUpdate(payload);
+      } else if (type == 'status_update') {
+        _handleStatusUpdate(payload);
       }
     } catch (e) {
       // Ignore parsing errors
@@ -116,8 +118,9 @@ class WebSocketManager {
       await ref.read(conversationRepositoryProvider).fetchConversations();
     }
 
+    final msgId = payload['id'] as String;
     final companion = db.MessagesCompanion(
-      id: drift.Value(payload['id']),
+      id: drift.Value(msgId),
       conversationId: drift.Value(payload['conversation_id']),
       senderId: drift.Value(payload['sender_id']),
       content: drift.Value(payload['content']),
@@ -129,16 +132,38 @@ class WebSocketManager {
 
     await messageDao.upsertMessage(companion);
     await conversationDao.updateLastMessage(
-      companion.conversationId.value, 
-      companion.createdAt.value,
-      companion.content.value
+      payload['conversation_id'], 
+      DateTime.parse(payload['created_at']), 
+      payload['content']
     );
+
+    // Send delivered receipt
+    sendStatusUpdate(msgId, 'delivered');
+  }
+
+  void sendStatusUpdate(String messageId, String status) {
+    if (_channel != null) {
+      _channel!.sink.add(jsonEncode({
+        'type': 'status_update',
+        'data': {
+          'message_id': messageId,
+          'status': status,
+        }
+      }));
+    }
+  }
+
+  Future<void> _handleStatusUpdate(Map<String, dynamic> payload) async {
+    final messageId = payload['message_id'];
+    final status = payload['status'];
+    final messageDao = ref.read(messageDaoProvider);
+    await messageDao.updateStatus(messageId, status);
   }
 
   Future<void> _handleAck(Map<String, dynamic> payload) async {
     final messageId = payload['message_id'];
     final messageDao = ref.read(messageDaoProvider);
-    await messageDao.updateStatus(messageId, 'delivered');
+    await messageDao.updateStatus(messageId, 'sent');
     await messageDao.markSynced(messageId);
   }
 

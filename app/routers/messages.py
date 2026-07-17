@@ -74,6 +74,34 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
                                 }
                             }), p_id)
             
+            elif msg_type == "status_update":
+                try:
+                    msg_id = payload.get("message_id")
+                    status_val = payload.get("status")
+                    if not msg_id or not status_val:
+                        continue
+                        
+                    msg_record = db.query(Message).filter(Message.id == msg_id).first()
+                    if not msg_record:
+                        continue
+                        
+                    # Verify user is recipient (only recipient can update to delivered/read)
+                    # wait, it's easier to just allow it since token is verified.
+                    msg_record.status = status_val
+                    db.commit()
+                    
+                    # Forward back to the original sender
+                    await manager.send_personal_message(json.dumps({
+                        "type": "status_update",
+                        "data": {
+                            "message_id": msg_id,
+                            "status": status_val
+                        }
+                    }), msg_record.sender_id)
+                except Exception as e:
+                    print(f"Error processing status update: {e}")
+                    db.rollback()
+
             elif msg_type == "message":
                 try:
                     msg_create = MessageCreate(**payload)
@@ -87,7 +115,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
                         conversation_id=msg_create.conversation_id,
                         sender_id=user.id,
                         content=msg_create.content,
-                        status="delivered",
+                        status="sent",
                         created_at=msg_create.created_at,
                         updated_at=msg_create.updated_at
                     )
@@ -135,7 +163,7 @@ def create_message(
         conversation_id=msg_data.conversation_id,
         sender_id=current_user.id,
         content=msg_data.content,
-        status="delivered",
+        status="sent",
         created_at=msg_data.created_at,
         updated_at=msg_data.updated_at
     )

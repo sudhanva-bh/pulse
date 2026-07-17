@@ -11,7 +11,10 @@ class MessageDao extends DatabaseAccessor<AppDatabase> with _$MessageDaoMixin {
   Stream<List<Message>> watchMessages(String conversationId) {
     return (select(messages)
           ..where((t) => t.conversationId.equals(conversationId))
-          ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
+          ..orderBy([
+            (t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc),
+            (t) => OrderingTerm(expression: t.rowId, mode: OrderingMode.desc),
+          ]))
         .watch();
   }
 

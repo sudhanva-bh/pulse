@@ -15,15 +15,14 @@ class MessageBubble extends StatelessWidget {
   FaIconData _getStatusIcon() {
     switch (message.status) {
       case MessageStatus.pending:
-        return FontAwesomeIcons.clock;
       case MessageStatus.sending:
+      case MessageStatus.queued:
+        return FontAwesomeIcons.clock;
+      case MessageStatus.sent:
         return FontAwesomeIcons.check;
       case MessageStatus.delivered:
-        return FontAwesomeIcons.checkDouble;
       case MessageStatus.read:
         return FontAwesomeIcons.checkDouble;
-      case MessageStatus.queued:
-        return FontAwesomeIcons.solidClock;
       case MessageStatus.failed:
         return FontAwesomeIcons.circleExclamation;
     }
