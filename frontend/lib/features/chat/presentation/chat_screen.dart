@@ -65,13 +65,59 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
 
     final messagesAsyncValue = ref.watch(messagesProvider(widget.conversationId));
+    final conversationsAsyncValue = ref.watch(conversationsProvider);
+    
+    final conversation = conversationsAsyncValue.value?.firstWhere(
+      (c) => c.id == widget.conversationId,
+      orElse: () => throw Exception('Conversation not found'),
+    );
+
+    Widget bottomWidget;
+    if (conversation == null) {
+      bottomWidget = const SizedBox.shrink();
+    } else if (conversation.status == 'pending') {
+      bottomWidget = Container(
+        color: Colors.orange.withOpacity(0.1),
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          conversation.initiatorId == _currentUserId 
+            ? 'Waiting for user to accept your chat request...'
+            : 'Accept request from the Chat Requests tab to reply.',
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+        ),
+      );
+    } else if (conversation.status == 'rejected') {
+      bottomWidget = Container(
+        color: Colors.red.withOpacity(0.1),
+        padding: const EdgeInsets.all(16),
+        child: const Text(
+          'Your chat request was declined.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+        ),
+      );
+    } else {
+      bottomWidget = MessageInput(
+        conversationId: widget.conversationId,
+        onSend: (content) {
+          if (_currentUserId != null) {
+            ref.read(messageRepositoryProvider).sendMessage(
+              widget.conversationId, 
+              content, 
+              _currentUserId!
+            );
+          }
+        },
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Chat'),
+            Text(conversation?.title ?? 'Chat'),
             Consumer(
               builder: (context, ref, child) {
                 final stateAsync = ref.watch(connectionStateProvider);
@@ -150,18 +196,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ],
               ),
             ),
-          MessageInput(
-            conversationId: widget.conversationId,
-            onSend: (content) {
-              if (_currentUserId != null) {
-                ref.read(messageRepositoryProvider).sendMessage(
-                  widget.conversationId, 
-                  content, 
-                  _currentUserId!
-                );
-              }
-            },
-          ),
+          bottomWidget,
         ],
       ),
     );

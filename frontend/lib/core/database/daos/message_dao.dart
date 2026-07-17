@@ -45,6 +45,14 @@ class MessageDao extends DatabaseAccessor<AppDatabase> with _$MessageDaoMixin {
     return (select(messages)..where((t) => t.syncedToCloud.equals(false))).get();
   }
 
+  Future<DateTime?> getLatestMessageTimestamp() async {
+    final query = select(messages)
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)])
+      ..limit(1);
+    final msg = await query.getSingleOrNull();
+    return msg?.createdAt;
+  }
+
   Future<void> deleteAll() {
     return delete(messages).go();
   }

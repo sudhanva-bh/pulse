@@ -6,6 +6,7 @@ import 'package:frontend/features/auth/presentation/login_screen.dart';
 import 'package:frontend/features/auth/presentation/register_screen.dart';
 import 'package:frontend/features/chat/presentation/conversation_list_screen.dart';
 import 'package:frontend/features/chat/presentation/chat_screen.dart';
+import 'package:frontend/features/chat/presentation/requests_screen.dart';
 import 'package:frontend/features/settings/presentation/settings_screen.dart';
 import 'package:frontend/features/sync/presentation/sync_screen.dart';
 
@@ -38,8 +39,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return (isLogin || isRegister) ? null : '/login';
       }
       if (authState is AuthAuthenticated) {
-        // If they are on a guest route, redirect to /sync
-        if (isSplash || isLogin || isRegister) {
+        if (isSplash) {
+          return '/home';
+        }
+        if (isLogin || isRegister) {
           return '/sync';
         }
         return null;
@@ -63,6 +66,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           final conversationId = state.pathParameters['conversationId']!;
           return ChatScreen(conversationId: conversationId);
         },
+      ),
+      GoRoute(
+        path: '/requests',
+        builder: (context, state) => const RequestsScreen(),
       ),
       GoRoute(
         path: '/settings',

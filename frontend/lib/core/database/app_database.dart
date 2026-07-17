@@ -19,7 +19,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -27,8 +27,14 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (m, from, to) async {
-      // Week 7: add steps here when schemaVersion bumps
-      // if (from < 2) await m.addColumn(messages, messages.isStarred);
+      if (from < 2) {
+        try { await m.addColumn(conversations, conversations.title); } catch (_) {}
+        try { await m.addColumn(conversations, conversations.lastMessageContent); } catch (_) {}
+      }
+      if (from < 3) {
+        try { await m.addColumn(conversations, conversations.status); } catch (_) {}
+        try { await m.addColumn(conversations, conversations.initiatorId); } catch (_) {}
+      }
     },
   );
 }

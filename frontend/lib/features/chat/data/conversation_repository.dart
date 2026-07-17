@@ -21,10 +21,46 @@ class ConversationRepository {
         participantIds: List<String>.from(json['participant_ids']),
         lastMessageAt: json['last_message_at'] != null ? DateTime.parse(json['last_message_at']).toUtc() : null,
         createdAt: DateTime.parse(json['created_at']).toUtc(),
+        title: json['title'],
+        lastMessageContent: json['last_message_content'],
+        status: json['status'],
+        initiatorId: json['initiator_id'],
       );
       await upsertConversation(conv);
     } catch (e) {
-      // Failed to create conversation
+      print("Error creating conversation: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> acceptRequest(String convId) async {
+    try {
+      final response = await _dio.post('/conversations/$convId/accept');
+      final json = response.data;
+      final conv = Conversation(
+        id: json['id'], participantIds: List<String>.from(json['participant_ids']),
+        lastMessageAt: json['last_message_at'] != null ? DateTime.parse(json['last_message_at']).toUtc() : null,
+        createdAt: DateTime.parse(json['created_at']).toUtc(), title: json['title'],
+        lastMessageContent: json['last_message_content'], status: json['status'], initiatorId: json['initiator_id'],
+      );
+      await upsertConversation(conv);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> rejectRequest(String convId) async {
+    try {
+      final response = await _dio.post('/conversations/$convId/reject');
+      final json = response.data;
+      final conv = Conversation(
+        id: json['id'], participantIds: List<String>.from(json['participant_ids']),
+        lastMessageAt: json['last_message_at'] != null ? DateTime.parse(json['last_message_at']).toUtc() : null,
+        createdAt: DateTime.parse(json['created_at']).toUtc(), title: json['title'],
+        lastMessageContent: json['last_message_content'], status: json['status'], initiatorId: json['initiator_id'],
+      );
+      await upsertConversation(conv);
+    } catch (e) {
       rethrow;
     }
   }
@@ -39,6 +75,10 @@ class ConversationRepository {
           participantIds: List<String>.from(json['participant_ids']),
           lastMessageAt: json['last_message_at'] != null ? DateTime.parse(json['last_message_at']).toUtc() : null,
           createdAt: DateTime.parse(json['created_at']).toUtc(),
+          title: json['title'],
+          lastMessageContent: json['last_message_content'],
+          status: json['status'],
+          initiatorId: json['initiator_id'],
         );
         await upsertConversation(conv);
       }
@@ -59,6 +99,10 @@ class ConversationRepository {
       participantIds: drift.Value(jsonEncode(conversation.participantIds)),
       lastMessageAt: drift.Value(conversation.lastMessageAt),
       createdAt: drift.Value(conversation.createdAt),
+      title: drift.Value(conversation.title),
+      lastMessageContent: drift.Value(conversation.lastMessageContent),
+      status: drift.Value(conversation.status),
+      initiatorId: drift.Value(conversation.initiatorId),
     );
     await _conversationDao.upsertConversation(companion);
   }
@@ -74,6 +118,10 @@ class ConversationRepository {
       participantIds: participants,
       lastMessageAt: c.lastMessageAt,
       createdAt: c.createdAt,
+      title: c.title,
+      lastMessageContent: c.lastMessageContent,
+      status: c.status,
+      initiatorId: c.initiatorId,
     );
   }
 }

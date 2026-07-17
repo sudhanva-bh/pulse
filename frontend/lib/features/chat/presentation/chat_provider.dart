@@ -6,6 +6,7 @@ import 'package:frontend/features/chat/data/conversation_repository.dart';
 import 'package:frontend/features/chat/data/message_repository.dart';
 import 'package:frontend/features/chat/domain/conversation.dart';
 import 'package:frontend/features/chat/domain/message.dart';
+import 'package:frontend/core/providers/user_provider.dart';
 
 import 'package:frontend/core/network/websocket_manager.dart';
 
@@ -24,10 +25,10 @@ final conversationDaoProvider = Provider<ConversationDao>((ref) {
 });
 
 final messageRepositoryProvider = Provider<MessageRepository>((ref) {
-  return MessageRepository(
-    ref.watch(messageDaoProvider),
-    ref.watch(webSocketManagerProvider),
-  );
+  final messageDao = ref.read(messageDaoProvider);
+  final conversationDao = ref.read(conversationDaoProvider);
+  final wsManager = ref.read(webSocketManagerProvider);
+  return MessageRepository(messageDao, conversationDao, wsManager);
 });
 
 final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
@@ -35,21 +36,45 @@ final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
 });
 
 final messagesProvider = StreamProvider.family<List<Message>, String>((ref, conversationId) {
-  final repository = ref.watch(messageRepositoryProvider);
-  return repository.watchMessages(conversationId);
+  return ref.watch(messageRepositoryProvider).watchMessages(conversationId);
 });
 
 final conversationsProvider = StreamProvider<List<Conversation>>((ref) {
-  final repository = ref.watch(conversationRepositoryProvider);
-  return repository.watchConversations();
+  return ref.watch(conversationRepositoryProvider).watchConversations();
+});
+
+final acceptedConversationsProvider = StreamProvider<List<Conversation>>((ref) async* {
+  final currentUser = await ref.watch(currentUserProvider.future);
+  if (currentUser == null) {
+    yield [];
+    return;
+  }
+  
+  await for (final list in ref.watch(conversationRepositoryProvider).watchConversations()) {
+    yield list.where((c) => c.status == 'accepted' || (c.status == 'pending' && c.initiatorId == currentUser) || (c.status == 'rejected' && c.initiatorId == currentUser)).toList();
+  }
+});
+
+final pendingRequestsProvider = StreamProvider<List<Conversation>>((ref) async* {
+  final currentUser = await ref.watch(currentUserProvider.future);
+  if (currentUser == null) {
+    yield [];
+    return;
+  }
+
+  await for (final list in ref.watch(conversationRepositoryProvider).watchConversations()) {
+    yield list.where((c) => c.status == 'pending' && c.initiatorId != currentUser).toList();
+  }
+});
+
+final unreadRequestsCountProvider = StreamProvider<int>((ref) {
+  return ref.watch(pendingRequestsProvider.stream).map((list) => list.length);
+});
+
+final typingStreamProvider = StreamProvider<Map<String, dynamic>?>((ref) {
+  return ref.watch(webSocketManagerProvider).typingStream;
 });
 
 final connectionStateProvider = StreamProvider<WsConnectionState>((ref) {
-  final ws = ref.watch(webSocketManagerProvider);
-  return ws.connectionStateStream;
-});
-
-final typingStreamProvider = StreamProvider<Map<String, dynamic>>((ref) {
-  final ws = ref.watch(webSocketManagerProvider);
-  return ws.typingStream;
+  return ref.watch(webSocketManagerProvider).connectionStateStream;
 });

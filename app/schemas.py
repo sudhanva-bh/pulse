@@ -68,6 +68,10 @@ class ConversationResponse(BaseModel):
     participant_ids: List[str]
     created_at: datetime
     last_message_at: Optional[datetime] = None
+    title: Optional[str] = None
+    last_message_content: Optional[str] = None
+    status: str
+    initiator_id: str
 
     model_config = {"from_attributes": True}
 

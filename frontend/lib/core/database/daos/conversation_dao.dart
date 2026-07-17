@@ -30,10 +30,11 @@ class ConversationDao extends DatabaseAccessor<AppDatabase> with _$ConversationD
     return into(conversations).insertOnConflictUpdate(conversation);
   }
 
-  Future<void> updateLastMessage(String id, DateTime time) {
+  Future<void> updateLastMessage(String id, DateTime time, String content) {
     return (update(conversations)..where((t) => t.id.equals(id))).write(
       ConversationsCompanion(
         lastMessageAt: Value(time),
+        lastMessageContent: Value(content),
       ),
     );
   }

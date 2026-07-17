@@ -28,3 +28,5 @@ class Conversation(Base):
     participant_ids = Column(ARRAY(String), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_message_at = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String, default="pending", nullable=False)
+    initiator_id = Column(String, nullable=False)

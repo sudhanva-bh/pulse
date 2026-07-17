@@ -38,6 +38,8 @@ class WebSocketManager {
       _channel = WebSocketChannel.connect(url);
       _connectionStateController.add(WsConnectionState.connected);
       _reconnectAttempt = 0;
+      
+      _runBackgroundDeltaSync();
 
       _channel!.stream.listen(
         (message) {
@@ -55,6 +57,19 @@ class WebSocketManager {
     }
   }
 
+  Future<void> _runBackgroundDeltaSync() async {
+    try {
+      await ref.read(conversationRepositoryProvider).fetchConversations();
+      final messageDao = ref.read(messageDaoProvider);
+      final latestTimestamp = await messageDao.getLatestMessageTimestamp();
+      if (latestTimestamp != null) {
+        await ref.read(messageRepositoryProvider).syncMissedMessages(latestTimestamp);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
   void _handleMessage(dynamic messageStr) {
     try {
       final Map<String, dynamic> data = jsonDecode(messageStr);
@@ -67,10 +82,27 @@ class WebSocketManager {
         _handleAck(payload);
       } else if (type == 'typing') {
         _typingController.add(payload);
+      } else if (type == 'conversation_update') {
+        _handleConversationUpdate(payload);
       }
     } catch (e) {
       // Ignore parsing errors
     }
+  }
+
+  Future<void> _handleConversationUpdate(Map<String, dynamic> payload) async {
+    final conversationDao = ref.read(conversationDaoProvider);
+    final companion = db.ConversationsCompanion(
+      id: drift.Value(payload['id']),
+      participantIds: drift.Value(jsonEncode(payload['participant_ids'])),
+      createdAt: drift.Value(DateTime.parse(payload['created_at'])),
+      lastMessageAt: drift.Value(payload['last_message_at'] != null ? DateTime.parse(payload['last_message_at']) : null),
+      title: drift.Value(payload['title']),
+      lastMessageContent: drift.Value(payload['last_message_content']),
+      status: drift.Value(payload['status']),
+      initiatorId: drift.Value(payload['initiator_id']),
+    );
+    await conversationDao.upsertConversation(companion);
   }
 
   Future<void> _handleIncomingMessage(Map<String, dynamic> payload) async {
@@ -96,7 +128,11 @@ class WebSocketManager {
     );
 
     await messageDao.upsertMessage(companion);
-    await conversationDao.updateLastMessage(companion.conversationId.value, companion.createdAt.value);
+    await conversationDao.updateLastMessage(
+      companion.conversationId.value, 
+      companion.createdAt.value,
+      companion.content.value
+    );
   }
 
   Future<void> _handleAck(Map<String, dynamic> payload) async {

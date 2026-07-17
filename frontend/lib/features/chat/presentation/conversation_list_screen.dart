@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/features/chat/domain/conversation.dart';
 import 'package:frontend/features/chat/presentation/chat_provider.dart';
-import 'package:uuid/uuid.dart';
 
 class ConversationListScreen extends ConsumerStatefulWidget {
   const ConversationListScreen({super.key});
@@ -13,22 +11,59 @@ class ConversationListScreen extends ConsumerStatefulWidget {
 }
 
 class _ConversationListScreenState extends ConsumerState<ConversationListScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(conversationRepositoryProvider).fetchConversations();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    final conversationsAsyncValue = ref.watch(conversationsProvider);
+    final conversationsAsyncValue = ref.watch(acceptedConversationsProvider);
+    final requestsCountAsyncValue = ref.watch(unreadRequestsCountProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pulse'),
         actions: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.person_add),
+                onPressed: () {
+                  context.push('/requests');
+                },
+              ),
+              requestsCountAsyncValue.when(
+                data: (count) {
+                  if (count > 0) {
+                    return Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -46,12 +81,28 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
             itemCount: conversations.length,
             itemBuilder: (context, index) {
               final conv = conversations[index];
+              
+              String subtitleText = conv.lastMessageContent ?? 'No messages yet';
+              Color? subtitleColor;
+              if (conv.status == 'pending') {
+                subtitleText = 'Pending confirmation...';
+                subtitleColor = Colors.orange;
+              } else if (conv.status == 'rejected') {
+                subtitleText = 'Request was unsuccessful';
+                subtitleColor = Colors.red;
+              }
+              
               return ListTile(
                 leading: CircleAvatar(
-                  child: Text(conv.id.substring(0, 1).toUpperCase()),
+                  child: Text(conv.title?.substring(0, 1).toUpperCase() ?? conv.id.substring(0, 1).toUpperCase()),
                 ),
-                title: Text('Conversation ${conv.id.substring(0, 4)}'),
-                subtitle: const Text('Tap to view messages'),
+                title: Text(conv.title ?? 'Conversation ${conv.id.substring(0, 4)}'),
+                subtitle: Text(
+                  subtitleText, 
+                  maxLines: 1, 
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: subtitleColor),
+                ),
                 onTap: () {
                   context.push('/chat/${conv.id}');
                 },
@@ -68,7 +119,7 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('New Conversation'),
+              title: const Text('Send Chat Request'),
               content: TextField(
                 controller: controller,
                 decoration: const InputDecoration(labelText: 'Username to chat with'),
@@ -87,18 +138,18 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
                         nav.pop();
                       } catch (e) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to create conversation. User may not exist.')));
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to send request.')));
                         }
                       }
                     }
                   },
-                  child: const Text('Create'),
+                  child: const Text('Send'),
                 ),
               ],
             ),
           );
         },
-        child: const Icon(Icons.message),
+        child: const Icon(Icons.add_comment),
       ),
     );
   }
