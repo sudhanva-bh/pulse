@@ -12,6 +12,23 @@ class ConversationRepository {
 
   ConversationRepository(this._conversationDao);
 
+  Future<void> createConversation(String username) async {
+    try {
+      final response = await _dio.post('/conversations', data: {'participant_username': username});
+      final json = response.data;
+      final conv = Conversation(
+        id: json['id'],
+        participantIds: List<String>.from(json['participant_ids']),
+        lastMessageAt: json['last_message_at'] != null ? DateTime.parse(json['last_message_at']).toUtc() : null,
+        createdAt: DateTime.parse(json['created_at']).toUtc(),
+      );
+      await upsertConversation(conv);
+    } catch (e) {
+      // Failed to create conversation
+      rethrow;
+    }
+  }
+
   Future<void> fetchConversations() async {
     try {
       final response = await _dio.get('/conversations');

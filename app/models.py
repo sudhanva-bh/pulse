@@ -1,5 +1,6 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, func, ARRAY
+from sqlalchemy import Column, String, DateTime, func
+from sqlalchemy.dialects.postgresql import ARRAY
 from app.database import Base
 
 class User(Base):

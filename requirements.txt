@@ -10,3 +10,4 @@ watchfiles
 pydantic[email]
 pydantic-settings
 python-multipart
+websockets

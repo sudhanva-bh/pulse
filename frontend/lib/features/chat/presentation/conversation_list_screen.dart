@@ -32,7 +32,7 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: Navigate to settings
+              context.push('/settings');
             },
           ),
         ],
@@ -64,16 +64,41 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Week 2 dummy conversation creation for testing offline functionality
-          final id = const Uuid().v4();
-          final conv = Conversation(
-            id: id,
-            participantIds: ['user1', 'user2'],
-            createdAt: DateTime.now().toUtc(),
+          final controller = TextEditingController();
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('New Conversation'),
+              content: TextField(
+                controller: controller,
+                decoration: const InputDecoration(labelText: 'Username to chat with'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (controller.text.isNotEmpty) {
+                      final nav = Navigator.of(context);
+                      try {
+                        await ref.read(conversationRepositoryProvider).createConversation(controller.text);
+                        nav.pop();
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to create conversation. User may not exist.')));
+                        }
+                      }
+                    }
+                  },
+                  child: const Text('Create'),
+                ),
+              ],
+            ),
           );
-          ref.read(conversationRepositoryProvider).upsertConversation(conv);
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.message),
       ),
     );
   }

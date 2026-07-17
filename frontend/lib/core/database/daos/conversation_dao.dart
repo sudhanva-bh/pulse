@@ -29,4 +29,8 @@ class ConversationDao extends DatabaseAccessor<AppDatabase> with _$ConversationD
       ),
     );
   }
+
+  Future<void> deleteAll() {
+    return delete(conversations).go();
+  }
 }

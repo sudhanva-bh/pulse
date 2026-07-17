@@ -44,4 +44,8 @@ class MessageDao extends DatabaseAccessor<AppDatabase> with _$MessageDaoMixin {
   Future<List<Message>> getUnsyncedMessages() {
     return (select(messages)..where((t) => t.syncedToCloud.equals(false))).get();
   }
+
+  Future<void> deleteAll() {
+    return delete(messages).go();
+  }
 }

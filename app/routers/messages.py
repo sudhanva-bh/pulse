@@ -32,8 +32,7 @@ manager = ConnectionManager()
 
 def get_user_from_token(token: str, db: Session) -> User:
     try:
-        payload = decode_access_token(token)
-        user_id = payload.get("sub")
+        user_id = decode_access_token(token)
         if user_id is None:
             return None
         return db.query(User).filter(User.id == user_id).first()

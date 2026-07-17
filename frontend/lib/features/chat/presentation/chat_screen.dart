@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
@@ -18,11 +19,19 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   String? _currentUserId;
+  bool _isTyping = false;
+  Timer? _typingTimer;
 
   @override
   void initState() {
     super.initState();
     _loadUserId();
+  }
+
+  @override
+  void dispose() {
+    _typingTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadUserId() async {
@@ -36,6 +45,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(typingStreamProvider, (prev, next) {
+      if (next.hasValue && next.value != null) {
+        final data = next.value!;
+        if (data['conversation_id'] == widget.conversationId && data['sender_id'] != _currentUserId) {
+          setState(() {
+            _isTyping = true;
+          });
+          _typingTimer?.cancel();
+          _typingTimer = Timer(const Duration(seconds: 3), () {
+            if (mounted) {
+              setState(() {
+                _isTyping = false;
+              });
+            }
+          });
+        }
+      }
+    });
+
     final messagesAsyncValue = ref.watch(messagesProvider(widget.conversationId));
 
     return Scaffold(
@@ -111,30 +139,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               error: (err, stack) => Center(child: Text('Error: $err')),
             ),
           ),
-          Consumer(
-            builder: (context, ref, child) {
-              final typingAsync = ref.watch(typingStreamProvider);
-              return typingAsync.when(
-                data: (data) {
-                  if (data['conversation_id'] == widget.conversationId && data['sender_id'] != _currentUserId) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                      child: Row(
-                        children: [
-                          LoadingAnimationWidget.waveDots(color: Colors.grey, size: 20),
-                          const SizedBox(width: 8),
-                          Text('Typing...', style: Theme.of(context).textTheme.bodySmall),
-                        ],
-                      ),
-                    );
-                  }
-                  return const SizedBox();
-                },
-                loading: () => const SizedBox(),
-                error: (_, __) => const SizedBox(),
-              );
-            },
-          ),
+          if (_isTyping)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              child: Row(
+                children: [
+                  LoadingAnimationWidget.waveDots(color: Colors.grey, size: 20),
+                  const SizedBox(width: 8),
+                  Text('Typing...', style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ),
           MessageInput(
             conversationId: widget.conversationId,
             onSend: (content) {
