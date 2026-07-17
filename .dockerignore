@@ -3,9 +3,10 @@ __pycache__
 *.pyo
 *.pyd
 .Python
-env/
-venv/
-.env/
-.venv/
-.git/
+env
+venv
+.env
+.venv
+.git
 .gitignore
+frontend
