@@ -12,7 +12,7 @@ class MessageBubble extends StatelessWidget {
     required this.isMe,
   });
 
-  IconData _getStatusIcon() {
+  FaIconData _getStatusIcon() {
     switch (message.status) {
       case MessageStatus.pending:
         return FontAwesomeIcons.clock;
@@ -56,7 +56,7 @@ class MessageBubble extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             if (isMe)
-              Icon(
+              FaIcon(
                 _getStatusIcon(),
                 size: 12,
                 color: message.status == MessageStatus.failed 
