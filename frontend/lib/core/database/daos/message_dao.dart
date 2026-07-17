@@ -6,7 +6,7 @@ part 'message_dao.g.dart';
 
 @DriftAccessor(tables: [Messages])
 class MessageDao extends DatabaseAccessor<AppDatabase> with _$MessageDaoMixin {
-  MessageDao(AppDatabase db) : super(db);
+  MessageDao(super.db);
 
   Stream<List<Message>> watchMessages(String conversationId) {
     return (select(messages)

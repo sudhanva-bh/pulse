@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/database/daos/conversation_dao.dart';
 import 'package:frontend/features/chat/domain/conversation.dart';
@@ -28,7 +29,9 @@ class ConversationRepository {
       );
       await upsertConversation(conv);
     } catch (e) {
-      print("Error creating conversation: $e");
+      if (kDebugMode) {
+        print("Error creating conversation: $e");
+      }
       rethrow;
     }
   }

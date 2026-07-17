@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
 
 class ApiClient {
-  static const _baseUrl = 'http://127.0.0.1:8080';
+  static const _baseUrl = 'http://192.168.1.3:8000';
   // 10.0.2.2:8000 : Android emulator
   // Change to 192.168.1.3:8000 for a physical device without adb reverse
 

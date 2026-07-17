@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
@@ -14,7 +15,7 @@ class WebSocketManager {
   WebSocketChannel? _channel;
   Timer? _reconnectTimer;
   int _reconnectAttempt = 0;
-  static const _wsUrl = 'ws://127.0.0.1:8080/ws';
+  static const _wsUrl = 'ws://192.168.1.3:8000/ws';
 
   final _connectionStateController =
       StreamController<WsConnectionState>.broadcast();

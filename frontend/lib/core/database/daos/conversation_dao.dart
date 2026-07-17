@@ -6,7 +6,7 @@ part 'conversation_dao.g.dart';
 
 @DriftAccessor(tables: [Conversations])
 class ConversationDao extends DatabaseAccessor<AppDatabase> with _$ConversationDaoMixin {
-  ConversationDao(AppDatabase db) : super(db);
+  ConversationDao(super.db);
 
   Stream<List<Conversation>> watchAllConversations() {
     return (select(conversations)

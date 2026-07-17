@@ -152,7 +152,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     );
                   },
                   loading: () => const SizedBox(),
-                  error: (_, __) => const SizedBox(),
+                  error: (_, _) => const SizedBox(),
                 );
               },
             ),
