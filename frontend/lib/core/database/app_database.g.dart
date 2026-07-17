@@ -725,6 +725,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $MessagesTable messages = $MessagesTable(this);
   late final $ConversationsTable conversations = $ConversationsTable(this);
+  late final MessageDao messageDao = MessageDao(this as AppDatabase);
+  late final ConversationDao conversationDao =
+      ConversationDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();

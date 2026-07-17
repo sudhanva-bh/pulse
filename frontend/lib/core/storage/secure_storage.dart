@@ -17,5 +17,14 @@ class SecureStorage {
   static Future<String?> getUserId() =>
       _storage.read(key: 'user_id');
 
+  static Future<void> saveDraft(String conversationId, String draft) =>
+      _storage.write(key: 'draft_$conversationId', value: draft);
+
+  static Future<String?> getDraft(String conversationId) =>
+      _storage.read(key: 'draft_$conversationId');
+
+  static Future<void> clearDraft(String conversationId) =>
+      _storage.delete(key: 'draft_$conversationId');
+
   static Future<void> clear() => _storage.deleteAll();
 }

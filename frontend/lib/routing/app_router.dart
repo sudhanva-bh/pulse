@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/features/auth/presentation/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/login_screen.dart';
 import 'package:frontend/features/auth/presentation/register_screen.dart';
+import 'package:frontend/features/chat/presentation/conversation_list_screen.dart';
+import 'package:frontend/features/chat/presentation/chat_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -48,7 +50,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
       ),
-      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(path: '/home', builder: (context, state) => const ConversationListScreen()),
+      GoRoute(
+        path: '/chat/:conversationId',
+        builder: (context, state) {
+          final conversationId = state.pathParameters['conversationId']!;
+          return ChatScreen(conversationId: conversationId);
+        },
+      ),
     ],
   );
 });
@@ -61,26 +70,5 @@ class SplashScreen extends ConsumerWidget {
     // Triggers session check on first frame
     Future.microtask(() => ref.read(authProvider.notifier).checkSession());
     return const Scaffold(body: Center(child: CircularProgressIndicator()));
-  }
-}
-
-// HomeScreen and LoginScreen are stubbed — built in Day 6
-class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authProvider.notifier).logout(),
-          ),
-        ],
-      ),
-      body: const Center(child: Text('Welcome to Pulse!')),
-    );
   }
 }

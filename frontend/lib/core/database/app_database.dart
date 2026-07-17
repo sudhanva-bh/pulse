@@ -6,9 +6,15 @@ import 'package:path/path.dart' as p;
 import 'package:frontend/core/database/tables/messages.dart';
 import 'package:frontend/core/database/tables/conversations.dart';
 
+import 'package:frontend/core/database/daos/message_dao.dart';
+import 'package:frontend/core/database/daos/conversation_dao.dart';
+
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Messages, Conversations])
+@DriftDatabase(
+  tables: [Messages, Conversations],
+  daos: [MessageDao, ConversationDao],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 

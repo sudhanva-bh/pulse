@@ -30,6 +30,10 @@ dependencies:
   # Navigation
   go_router: ^14.2.7
 
+  # Utils & UI
+  uuid: ^4.4.0
+  font_awesome_flutter: ^11.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
