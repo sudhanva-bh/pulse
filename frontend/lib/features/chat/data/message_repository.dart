@@ -1,4 +1,5 @@
 import 'package:frontend/core/database/daos/message_dao.dart';
+import 'package:frontend/core/storage/secure_storage.dart';
 import 'package:frontend/features/chat/domain/message.dart';
 import 'package:frontend/core/network/websocket_manager.dart';
 import 'package:frontend/core/network/api_client.dart';
@@ -49,13 +50,17 @@ class MessageRepository {
     }
   }
 
-  Future<int> syncMissedMessages(DateTime since) async {
+  Future<int> syncMissedMessages() async {
     try {
+      final since = await SecureStorage.getLastSyncTimestamp() ?? DateTime.fromMillisecondsSinceEpoch(0).toUtc();
+      
       final dio = ApiClient().dio;
       final response = await dio.get('/messages/sync', queryParameters: {'since': since.toIso8601String()});
       final List data = response.data;
       
       int loaded = 0;
+      DateTime? maxSyncedAt;
+      
       for (var json in data) {
         final companion = db.MessagesCompanion(
           id: drift.Value(json['id']),
@@ -69,10 +74,20 @@ class MessageRepository {
         );
         await _messageDao.upsertMessage(companion);
         loaded++;
+        
+        final syncedAt = DateTime.parse(json['synced_at']).toUtc();
+        if (maxSyncedAt == null || syncedAt.isAfter(maxSyncedAt)) {
+          maxSyncedAt = syncedAt;
+        }
       }
+      
+      if (maxSyncedAt != null) {
+        await SecureStorage.saveLastSyncTimestamp(maxSyncedAt);
+      }
+      
       return loaded;
     } catch (e) {
-      return 0;
+      return 0; // Return 0 loaded on error
     }
   }
 

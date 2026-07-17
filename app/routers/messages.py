@@ -196,7 +196,7 @@ def sync_messages(
     # Query all messages in those conversations newer than 'since'
     messages = db.query(Message).filter(
         Message.conversation_id.in_(conv_ids),
-        Message.created_at > since
-    ).order_by(Message.created_at.asc()).all()
+        Message.synced_at > since
+    ).order_by(Message.synced_at.asc()).all()
     
     return messages

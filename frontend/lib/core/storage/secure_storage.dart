@@ -26,5 +26,14 @@ class SecureStorage {
   static Future<void> clearDraft(String conversationId) =>
       _storage.delete(key: 'draft_$conversationId');
 
+  static Future<void> saveLastSyncTimestamp(DateTime timestamp) =>
+      _storage.write(key: 'last_sync_timestamp', value: timestamp.toIso8601String());
+
+  static Future<DateTime?> getLastSyncTimestamp() async {
+    final val = await _storage.read(key: 'last_sync_timestamp');
+    if (val == null) return null;
+    return DateTime.tryParse(val);
+  }
+
   static Future<void> clear() => _storage.deleteAll();
 }

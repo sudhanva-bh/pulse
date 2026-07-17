@@ -11,6 +11,31 @@ class ConversationListScreen extends ConsumerStatefulWidget {
 }
 
 class _ConversationListScreenState extends ConsumerState<ConversationListScreen> {
+  bool _isSyncing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _runSync();
+  }
+
+  Future<void> _runSync() async {
+    setState(() => _isSyncing = true);
+    try {
+      final msgRepo = ref.read(messageRepositoryProvider);
+      int loaded = await msgRepo.syncMissedMessages();
+      
+      if (mounted && loaded > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sync complete: $loaded messages synced')),
+        );
+      }
+    } catch (e) {
+      debugPrint("Sync error: $e");
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +46,15 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
       appBar: AppBar(
         title: const Text('Pulse'),
         actions: [
+          if (_isSyncing)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
           Stack(
             alignment: Alignment.center,
             children: [

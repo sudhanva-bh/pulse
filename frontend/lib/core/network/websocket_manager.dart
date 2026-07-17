@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
@@ -61,11 +61,7 @@ class WebSocketManager {
   Future<void> _runBackgroundDeltaSync() async {
     try {
       await ref.read(conversationRepositoryProvider).fetchConversations();
-      final messageDao = ref.read(messageDaoProvider);
-      final latestTimestamp = await messageDao.getLatestMessageTimestamp();
-      if (latestTimestamp != null) {
-        await ref.read(messageRepositoryProvider).syncMissedMessages(latestTimestamp);
-      }
+      await ref.read(messageRepositoryProvider).syncMissedMessages();
     } catch (e) {
       // ignore
     }

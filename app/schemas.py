@@ -55,6 +55,7 @@ class MessageResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
+    synced_at: datetime
 
     model_config = {"from_attributes": True}
 
