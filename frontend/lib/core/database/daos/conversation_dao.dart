@@ -18,6 +18,14 @@ class ConversationDao extends DatabaseAccessor<AppDatabase> with _$ConversationD
         .watch();
   }
 
+  Future<List<Conversation>> getAllConversations() {
+    return select(conversations).get();
+  }
+
+  Future<Conversation?> getConversation(String id) {
+    return (select(conversations)..where((t) => t.id.equals(id))).getSingleOrNull();
+  }
+
   Future<void> upsertConversation(ConversationsCompanion conversation) {
     return into(conversations).insertOnConflictUpdate(conversation);
   }

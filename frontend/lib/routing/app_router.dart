@@ -7,6 +7,7 @@ import 'package:frontend/features/auth/presentation/register_screen.dart';
 import 'package:frontend/features/chat/presentation/conversation_list_screen.dart';
 import 'package:frontend/features/chat/presentation/chat_screen.dart';
 import 'package:frontend/features/settings/presentation/settings_screen.dart';
+import 'package:frontend/features/sync/presentation/sync_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -37,7 +38,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         return (isLogin || isRegister) ? null : '/login';
       }
       if (authState is AuthAuthenticated) {
-        return (isSplash || isLogin || isRegister) ? '/home' : null;
+        // If they are on a guest route, redirect to /sync
+        if (isSplash || isLogin || isRegister) {
+          return '/sync';
+        }
+        return null;
       }
       return null;
     },
@@ -62,6 +67,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/sync',
+        builder: (context, state) => const SyncScreen(),
       ),
     ],
   );

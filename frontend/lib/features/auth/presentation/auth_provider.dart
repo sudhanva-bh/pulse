@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/features/auth/data/auth_repository.dart';
 import 'package:frontend/features/auth/domain/user.dart';
+import 'package:frontend/core/database/app_database.dart';
+import 'package:frontend/features/chat/presentation/chat_provider.dart';
 
 sealed class AuthState {}
 class AuthInitial extends AuthState {}
@@ -19,13 +21,14 @@ class AuthError extends AuthState {
 final authRepositoryProvider = Provider((ref) => AuthRepository());
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
-  (ref) => AuthNotifier(ref.read(authRepositoryProvider)),
+  (ref) => AuthNotifier(ref.read(authRepositoryProvider), ref.read(appDatabaseProvider)),
 );
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repo;
+  final AppDatabase _db;
 
-  AuthNotifier(this._repo) : super(AuthInitial());
+  AuthNotifier(this._repo, this._db) : super(AuthInitial());
 
   Future<void> checkSession() async {
     final loggedIn = await _repo.isLoggedIn();
@@ -67,6 +70,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    await _db.messageDao.deleteAll();
+    await _db.conversationDao.deleteAll();
     await _repo.logout();
     state = AuthUnauthenticated();
   }

@@ -1,6 +1,7 @@
 import 'package:frontend/core/database/daos/message_dao.dart';
 import 'package:frontend/features/chat/domain/message.dart';
 import 'package:frontend/core/network/websocket_manager.dart';
+import 'package:frontend/core/network/api_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:frontend/core/database/app_database.dart' as db;
@@ -16,6 +17,33 @@ class MessageRepository {
     return _messageDao.watchMessages(conversationId).map((driftMessages) {
       return driftMessages.map((m) => _mapFromDrift(m)).toList();
     });
+  }
+
+  Future<int> fetchMessagesForConversation(String conversationId) async {
+    try {
+      final dio = ApiClient().dio;
+      final response = await dio.get('/conversations/$conversationId/messages');
+      final List data = response.data;
+      
+      int loaded = 0;
+      for (var json in data) {
+        final companion = db.MessagesCompanion(
+          id: drift.Value(json['id']),
+          conversationId: drift.Value(json['conversation_id']),
+          senderId: drift.Value(json['sender_id']),
+          content: drift.Value(json['content']),
+          status: const drift.Value('delivered'),
+          createdAt: drift.Value(DateTime.parse(json['created_at']).toUtc()),
+          updatedAt: drift.Value(DateTime.parse(json['updated_at']).toUtc()),
+          syncedToCloud: const drift.Value(true),
+        );
+        await _messageDao.upsertMessage(companion);
+        loaded++;
+      }
+      return loaded;
+    } catch (e) {
+      return 0; // Return 0 loaded on error
+    }
   }
 
   Future<void> sendMessage(String conversationId, String content, String senderId) async {

@@ -76,6 +76,13 @@ class WebSocketManager {
   Future<void> _handleIncomingMessage(Map<String, dynamic> payload) async {
     final messageDao = ref.read(messageDaoProvider);
     final conversationDao = ref.read(conversationDaoProvider);
+    
+    final convId = payload['conversation_id'] as String;
+    final conv = await conversationDao.getConversation(convId);
+    if (conv == null) {
+      // If we don't have this conversation locally, fetch it from the backend
+      await ref.read(conversationRepositoryProvider).fetchConversations();
+    }
 
     final companion = db.MessagesCompanion(
       id: drift.Value(payload['id']),
