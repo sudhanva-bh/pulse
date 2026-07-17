@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
+import 'package:frontend/core/network/websocket_manager.dart';
 import 'dart:async';
 
 class MessageInput extends ConsumerStatefulWidget {
@@ -20,6 +21,7 @@ class MessageInput extends ConsumerStatefulWidget {
 class _MessageInputState extends ConsumerState<MessageInput> {
   late TextEditingController _controller;
   Timer? _debounce;
+  Timer? _typingDebounce;
 
   @override
   void initState() {
@@ -43,11 +45,17 @@ class _MessageInputState extends ConsumerState<MessageInput> {
         SecureStorage.saveDraft(widget.conversationId, _controller.text);
       }
     });
+
+    if (!(_typingDebounce?.isActive ?? false) && _controller.text.isNotEmpty) {
+      ref.read(webSocketManagerProvider).sendTyping(widget.conversationId);
+      _typingDebounce = Timer(const Duration(seconds: 2), () {});
+    }
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _typingDebounce?.cancel();
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     super.dispose();

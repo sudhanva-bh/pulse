@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, func
+from sqlalchemy import Column, String, DateTime, func, ARRAY
 from app.database import Base
 
 class User(Base):
@@ -20,3 +20,10 @@ class Message(Base):
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
     synced_at = Column(DateTime, server_default=func.now())
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+    id = Column(String, primary_key=True)
+    participant_ids = Column(ARRAY(String), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    last_message_at = Column(DateTime, nullable=True)

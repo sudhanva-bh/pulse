@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/database/daos/conversation_dao.dart';
 import 'package:frontend/features/chat/domain/conversation.dart';
 import 'package:drift/drift.dart' as drift;
@@ -6,8 +8,27 @@ import 'package:frontend/core/database/app_database.dart' as db;
 
 class ConversationRepository {
   final ConversationDao _conversationDao;
+  final Dio _dio = ApiClient().dio;
 
   ConversationRepository(this._conversationDao);
+
+  Future<void> fetchConversations() async {
+    try {
+      final response = await _dio.get('/conversations');
+      final List data = response.data;
+      for (var json in data) {
+        final conv = Conversation(
+          id: json['id'],
+          participantIds: List<String>.from(json['participant_ids']),
+          lastMessageAt: json['last_message_at'] != null ? DateTime.parse(json['last_message_at']).toUtc() : null,
+          createdAt: DateTime.parse(json['created_at']).toUtc(),
+        );
+        await upsertConversation(conv);
+      }
+    } catch (e) {
+      // Failed to fetch conversations
+    }
+  }
 
   Stream<List<Conversation>> watchConversations() {
     return _conversationDao.watchAllConversations().map((driftConvos) {

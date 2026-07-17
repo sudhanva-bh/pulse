@@ -7,6 +7,8 @@ import 'package:frontend/features/chat/data/message_repository.dart';
 import 'package:frontend/features/chat/domain/conversation.dart';
 import 'package:frontend/features/chat/domain/message.dart';
 
+import 'package:frontend/core/network/websocket_manager.dart';
+
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   return AppDatabase();
 });
@@ -22,7 +24,10 @@ final conversationDaoProvider = Provider<ConversationDao>((ref) {
 });
 
 final messageRepositoryProvider = Provider<MessageRepository>((ref) {
-  return MessageRepository(ref.watch(messageDaoProvider));
+  return MessageRepository(
+    ref.watch(messageDaoProvider),
+    ref.watch(webSocketManagerProvider),
+  );
 });
 
 final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
@@ -37,4 +42,14 @@ final messagesProvider = StreamProvider.family<List<Message>, String>((ref, conv
 final conversationsProvider = StreamProvider<List<Conversation>>((ref) {
   final repository = ref.watch(conversationRepositoryProvider);
   return repository.watchConversations();
+});
+
+final connectionStateProvider = StreamProvider<WsConnectionState>((ref) {
+  final ws = ref.watch(webSocketManagerProvider);
+  return ws.connectionStateStream;
+});
+
+final typingStreamProvider = StreamProvider<Map<String, dynamic>>((ref) {
+  final ws = ref.watch(webSocketManagerProvider);
+  return ws.typingStream;
 });

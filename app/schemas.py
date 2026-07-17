@@ -1,5 +1,6 @@
 from pydantic import BaseModel, field_validator
 from datetime import datetime
+from typing import List, Optional, Any, Dict
 
 
 class UserRegister(BaseModel):
@@ -56,4 +57,21 @@ class MessageResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
-    
+
+
+class ConversationCreate(BaseModel):
+    participant_username: str
+
+
+class ConversationResponse(BaseModel):
+    id: str
+    participant_ids: List[str]
+    created_at: datetime
+    last_message_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+class MessageWs(BaseModel):
+    type: str
+    data: Dict[str, Any]

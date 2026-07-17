@@ -5,11 +5,24 @@ import 'package:frontend/features/chat/domain/conversation.dart';
 import 'package:frontend/features/chat/presentation/chat_provider.dart';
 import 'package:uuid/uuid.dart';
 
-class ConversationListScreen extends ConsumerWidget {
+class ConversationListScreen extends ConsumerStatefulWidget {
   const ConversationListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConversationListScreen> createState() => _ConversationListScreenState();
+}
+
+class _ConversationListScreenState extends ConsumerState<ConversationListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(conversationRepositoryProvider).fetchConversations();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final conversationsAsyncValue = ref.watch(conversationsProvider);
 
     return Scaffold(

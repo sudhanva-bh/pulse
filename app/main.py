@@ -1,9 +1,11 @@
 from fastapi import FastAPI
-from app.routers import auth
+from app.routers import auth, conversations, messages
 
 app = FastAPI(title="Pulse API", version="0.1.0")
 
 app.include_router(auth.router)
+app.include_router(conversations.router)
+app.include_router(messages.router)
 
 @app.get("/health")
 def health():
