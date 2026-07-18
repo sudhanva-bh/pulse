@@ -35,6 +35,29 @@ The backend is fully dockerized. Ensure you have Docker and Docker Compose insta
    docker compose exec api alembic upgrade head
    ```
 
+5. To view logs
+   ```bash
+   docker-compose logs -f
+   ```
+   or to view just the API logs
+   ```bash
+   docker-compose logs -f api
+   ```
+
+6. To shut down the API and database, run:
+
+   ```bash
+   docker-compose down
+   ```
+
+7. To start the Backend
+   ```bash
+   docker compose start api
+   ```
+8. To stop the Backend
+   ```bash
+   docker compose stop api
+   ```
 ### Frontend (Flutter)
 
 1. Ensure you have the Flutter SDK installed and an emulator running (or physical Android device connected).
