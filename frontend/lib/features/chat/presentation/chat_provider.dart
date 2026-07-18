@@ -10,6 +10,7 @@ import 'package:frontend/features/chat/domain/message.dart';
 import 'package:frontend/core/providers/user_provider.dart';
 
 import 'package:frontend/core/network/websocket_manager.dart';
+import 'package:frontend/core/services/sync_engine.dart';
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   return AppDatabase();
@@ -29,7 +30,8 @@ final messageRepositoryProvider = Provider<MessageRepository>((ref) {
   final messageDao = ref.read(messageDaoProvider);
   final conversationDao = ref.read(conversationDaoProvider);
   final wsManager = ref.read(webSocketManagerProvider);
-  return MessageRepository(messageDao, conversationDao, wsManager);
+  final syncEngine = ref.read(syncEngineProvider);
+  return MessageRepository(messageDao, conversationDao, wsManager, syncEngine);
 });
 
 final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {

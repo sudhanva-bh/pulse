@@ -1,5 +1,4 @@
 import 'package:frontend/core/database/daos/message_dao.dart';
-import 'package:frontend/core/storage/secure_storage.dart';
 import 'package:frontend/features/chat/domain/message.dart';
 import 'package:frontend/core/network/websocket_manager.dart';
 import 'package:frontend/core/network/api_client.dart';
@@ -9,13 +8,21 @@ import 'package:frontend/core/database/app_database.dart' as db;
 
 import 'package:frontend/core/database/daos/conversation_dao.dart';
 
+import 'package:frontend/core/services/sync_engine.dart';
+
 class MessageRepository {
   final MessageDao _messageDao;
   final ConversationDao _conversationDao;
   final WebSocketManager _wsManager;
+  final SyncEngine _syncEngine;
   final _uuid = const Uuid();
 
-  MessageRepository(this._messageDao, this._conversationDao, this._wsManager);
+  MessageRepository(
+    this._messageDao,
+    this._conversationDao,
+    this._wsManager,
+    this._syncEngine,
+  );
 
   Stream<List<Message>> watchMessages(String conversationId) {
     return _messageDao.watchMessages(conversationId).map((driftMessages) {
@@ -51,54 +58,8 @@ class MessageRepository {
   }
 
   Future<int> syncMissedMessages() async {
-    try {
-      final since =
-          await SecureStorage.getLastSyncTimestamp() ??
-          DateTime.fromMillisecondsSinceEpoch(0).toUtc();
-
-      final dio = ApiClient().dio;
-      final response = await dio.get(
-        '/messages/sync',
-        queryParameters: {'since': since.toIso8601String()},
-      );
-      final List data = response.data;
-
-      int loaded = 0;
-      DateTime? maxSyncedAt;
-
-      for (var json in data) {
-        final companion = db.MessagesCompanion(
-          id: drift.Value(json['id']),
-          conversationId: drift.Value(json['conversation_id']),
-          senderId: drift.Value(json['sender_id']),
-          content: drift.Value(json['content']),
-          status: const drift.Value('delivered'),
-          createdAt: drift.Value(DateTime.parse(json['created_at']).toUtc()),
-          updatedAt: drift.Value(DateTime.parse(json['updated_at']).toUtc()),
-          syncedToCloud: const drift.Value(true),
-        );
-        await _messageDao.upsertMessage(companion);
-        loaded++;
-
-        final currentUserId = await SecureStorage.getUserId();
-        if (json['sender_id'] != currentUserId && json['status'] == 'sent') {
-          _wsManager.sendStatusUpdate(json['id'], 'delivered');
-        }
-
-        final syncedAt = DateTime.parse(json['synced_at']).toUtc();
-        if (maxSyncedAt == null || syncedAt.isAfter(maxSyncedAt)) {
-          maxSyncedAt = syncedAt;
-        }
-      }
-
-      if (maxSyncedAt != null) {
-        await SecureStorage.saveLastSyncTimestamp(maxSyncedAt);
-      }
-
-      return loaded;
-    } catch (e) {
-      return 0; // Return 0 loaded on error
-    }
+    final success = await _syncEngine.runSync();
+    return success ? 1 : 0;
   }
 
   Future<void> sendMessage(

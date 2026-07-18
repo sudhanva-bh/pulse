@@ -80,3 +80,8 @@ class ConversationResponse(BaseModel):
 class MessageWs(BaseModel):
     type: str
     data: Dict[str, Any]
+
+
+class SyncRequest(BaseModel):
+    last_sync_timestamp: datetime
+    messages: List[MessageCreate] = []

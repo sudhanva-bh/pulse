@@ -186,29 +186,3 @@ def create_message(
     db.refresh(new_msg)
     
     return new_msg
-
-from datetime import datetime
-
-@router.get("/messages/sync", response_model=List[MessageResponse])
-def sync_messages(
-    since: datetime,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    # Find all conversations the user is part of
-    convs = db.query(Conversation).filter(
-        Conversation.participant_ids.contains([current_user.id])
-    ).all()
-    
-    if not convs:
-        return []
-        
-    conv_ids = [c.id for c in convs]
-    
-    # Query all messages in those conversations newer than 'since'
-    messages = db.query(Message).filter(
-        Message.conversation_id.in_(conv_ids),
-        Message.synced_at > since
-    ).order_by(Message.synced_at.asc()).all()
-    
-    return messages
