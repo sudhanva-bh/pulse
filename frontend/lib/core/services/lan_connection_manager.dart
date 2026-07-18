@@ -16,15 +16,23 @@ class LanConnectionManager {
   Socket? _socket;
   StreamSubscription? _subscription;
 
+  String? _expectedToken;
+  bool _isAuthenticated = false;
+  VoidCallback? _onAuthenticated;
+
   LanConnectionManager(this._messageDao, this._conversationDao);
 
-  bool get isConnected => _socket != null;
+  bool get isConnected => _socket != null && _isAuthenticated;
 
-  void attachSocket(Socket socket) {
+  void attachSocket(Socket socket, {String? expectedToken, VoidCallback? onAuthenticated}) {
     disconnect(); // Ensure any existing socket is closed
     _socket = socket;
+    _expectedToken = expectedToken;
+    _isAuthenticated = expectedToken == null;
+    _onAuthenticated = onAuthenticated;
 
     _subscription = socket
+        .cast<List<int>>()
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen(
@@ -33,6 +41,13 @@ class LanConnectionManager {
       onError: (e) => disconnect(),
     );
 
+    if (_isAuthenticated) {
+      _showSuccessToast();
+      _onAuthenticated?.call();
+    }
+  }
+
+  void _showSuccessToast() {
     toastification.show(
       title: const Text('LAN Connection Established'),
       description: const Text('You are now chatting peer-to-peer.'),
@@ -44,6 +59,18 @@ class LanConnectionManager {
   Future<void> _handleIncomingFrame(String frame) async {
     try {
       final data = jsonDecode(frame);
+      
+      if (!_isAuthenticated) {
+        if (data['token'] == _expectedToken) {
+          _isAuthenticated = true;
+          _showSuccessToast();
+          _onAuthenticated?.call();
+        } else {
+          disconnect();
+        }
+        return;
+      }
+
       if (data is Map<String, dynamic> && data['type'] == 'message') {
         final payload = data['data'];
         

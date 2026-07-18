@@ -9,12 +9,14 @@ import 'package:frontend/core/database/app_database.dart' as db;
 import 'package:frontend/core/database/daos/conversation_dao.dart';
 
 import 'package:frontend/core/services/sync_engine.dart';
+import 'package:frontend/core/services/lan_connection_manager.dart';
 
 class MessageRepository {
   final MessageDao _messageDao;
   final ConversationDao _conversationDao;
   final WebSocketManager _wsManager;
   final SyncEngine _syncEngine;
+  final LanConnectionManager _lanManager;
   final _uuid = const Uuid();
 
   MessageRepository(
@@ -22,6 +24,7 @@ class MessageRepository {
     this._conversationDao,
     this._wsManager,
     this._syncEngine,
+    this._lanManager,
   );
 
   Stream<List<Message>> watchMessages(String conversationId) {
@@ -87,13 +90,21 @@ class MessageRepository {
     await _conversationDao.updateLastMessage(conversationId, now, content);
 
     // Send over websocket
-    _wsManager.sendMessage({
+    final payload = {
       'id': messageId,
       'conversation_id': conversationId,
       'content': content,
       'created_at': now.toIso8601String(),
       'updated_at': now.toIso8601String(),
-    });
+      'sender_id': senderId, // required for LanConnectionManager
+    };
+
+    if (_lanManager.isConnected) {
+      _lanManager.sendMessage(payload);
+      await _messageDao.updateStatus(messageId, 'deliveredLocally');
+    } else {
+      _wsManager.sendMessage(payload);
+    }
   }
 
   Future<void> updateStatus(String id, MessageStatus status) async {

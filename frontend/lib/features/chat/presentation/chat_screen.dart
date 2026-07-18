@@ -127,59 +127,53 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Text(conversation?.title ?? 'Chat'),
             Consumer(
               builder: (context, ref, child) {
-                final stateAsync = ref.watch(connectionStateProvider);
-                return stateAsync.when(
-                  data: (state) {
-                    if (state == WsConnectionState.connected) {
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const FaIcon(
-                            FontAwesomeIcons.wifi,
-                            size: 12,
-                            color: Colors.green,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Connected',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      );
-                    } else if (state == WsConnectionState.reconnecting) {
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          LoadingAnimationWidget.progressiveDots(
-                            color: Colors.orange,
-                            size: 12,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Reconnecting...',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      );
-                    }
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const FaIcon(
-                          FontAwesomeIcons.wifi,
-                          size: 12,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Disconnected',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    );
-                  },
-                  loading: () => const SizedBox(),
-                  error: (_, _) => const SizedBox(),
+                final state = ref.watch(connectionStateProvider);
+                if (state == WsConnectionState.connected) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const FaIcon(
+                        FontAwesomeIcons.wifi,
+                        size: 12,
+                        color: Colors.green,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Connected',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  );
+                } else if (state == WsConnectionState.reconnecting) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      LoadingAnimationWidget.progressiveDots(
+                        color: Colors.orange,
+                        size: 12,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Reconnecting...',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  );
+                }
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const FaIcon(
+                      FontAwesomeIcons.wifi,
+                      size: 12,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Disconnected',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 );
               },
             ),
@@ -188,8 +182,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         actions: [
           Consumer(
             builder: (context, ref, child) {
-              final stateAsync = ref.watch(connectionStateProvider);
-              final isDisconnected = stateAsync.valueOrNull != WsConnectionState.connected;
+              final state = ref.watch(connectionStateProvider);
+              final isDisconnected = state != WsConnectionState.connected;
               if (isDisconnected) {
                 return PopupMenuButton<String>(
                   icon: const FaIcon(FontAwesomeIcons.networkWired, size: 20),
@@ -264,8 +258,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           Consumer(
             builder: (context, ref, child) {
-              final stateAsync = ref.watch(connectionStateProvider);
-              final isDisconnected = stateAsync.hasValue && stateAsync.value != WsConnectionState.connected;
+              final state = ref.watch(connectionStateProvider);
+              final isDisconnected = state != WsConnectionState.connected;
               
               bool hasUnsynced = false;
               if (messagesAsyncValue.hasValue) {

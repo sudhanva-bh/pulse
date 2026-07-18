@@ -11,6 +11,7 @@ import 'package:frontend/core/providers/user_provider.dart';
 
 import 'package:frontend/core/network/websocket_manager.dart';
 import 'package:frontend/core/services/sync_engine.dart';
+import 'package:frontend/core/services/lan_connection_manager.dart';
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   return AppDatabase();
@@ -31,7 +32,14 @@ final messageRepositoryProvider = Provider<MessageRepository>((ref) {
   final conversationDao = ref.read(conversationDaoProvider);
   final wsManager = ref.read(webSocketManagerProvider);
   final syncEngine = ref.read(syncEngineProvider);
-  return MessageRepository(messageDao, conversationDao, wsManager, syncEngine);
+  final lanManager = ref.read(lanConnectionManagerProvider);
+  return MessageRepository(
+    messageDao, 
+    conversationDao, 
+    wsManager, 
+    syncEngine, 
+    lanManager,
+  );
 });
 
 final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
@@ -96,6 +104,6 @@ final typingStreamProvider = StreamProvider<Map<String, dynamic>?>((ref) {
   return ref.watch(webSocketManagerProvider).typingStream;
 });
 
-final connectionStateProvider = StreamProvider<WsConnectionState>((ref) {
-  return ref.watch(webSocketManagerProvider).connectionStateStream;
+final connectionStateProvider = StateProvider<WsConnectionState>((ref) {
+  return WsConnectionState.disconnected;
 });

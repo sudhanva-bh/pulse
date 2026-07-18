@@ -8,6 +8,7 @@ import 'package:frontend/core/database/app_database.dart' as db;
 import 'package:frontend/features/chat/presentation/chat_provider.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
+import 'package:frontend/core/services/lan_connection_manager.dart';
 
 enum WsConnectionState { connected, reconnecting, disconnected }
 
@@ -19,16 +20,11 @@ class WebSocketManager with WidgetsBindingObserver {
   static const _wsUrl = 'ws://192.168.1.3:8000/ws';
   Timer? _pingTimer;
 
-  final _connectionStateController =
-      StreamController<WsConnectionState>.broadcast();
   final _typingController = StreamController<Map<String, dynamic>>.broadcast();
 
-  Stream<WsConnectionState> get connectionStateStream =>
-      _connectionStateController.stream;
   Stream<Map<String, dynamic>> get typingStream => _typingController.stream;
 
   WebSocketManager(this.ref) {
-    _connectionStateController.add(WsConnectionState.disconnected);
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -61,7 +57,10 @@ class WebSocketManager with WidgetsBindingObserver {
       );
 
       _reconnectAttempt = 0;
-      _connectionStateController.add(WsConnectionState.connected);
+      ref.read(connectionStateProvider.notifier).state = WsConnectionState.connected;
+      
+      // Successfully reconnected to cloud: drop any active LAN sockets
+      ref.read(lanConnectionManagerProvider).disconnect();
 
       _pingTimer?.cancel();
       _pingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
@@ -195,7 +194,7 @@ class WebSocketManager with WidgetsBindingObserver {
 
   void _scheduleReconnect() {
     _pingTimer?.cancel();
-    _connectionStateController.add(WsConnectionState.reconnecting);
+    ref.read(connectionStateProvider.notifier).state = WsConnectionState.reconnecting;
     _channel?.sink.close();
     _channel = null;
 
@@ -231,7 +230,6 @@ class WebSocketManager with WidgetsBindingObserver {
     _pingTimer?.cancel();
     _reconnectTimer?.cancel();
     _channel?.sink.close();
-    _connectionStateController.close();
     _typingController.close();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/routing/app_router.dart';
+import 'package:toastification/toastification.dart';
 
 import 'package:workmanager/workmanager.dart';
 import 'package:frontend/core/services/sync_engine.dart';
@@ -44,10 +45,12 @@ class PulseApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(connectivityServiceProvider);
     final router = ref.watch(routerProvider);
-    return MaterialApp.router(
-      title: 'Pulse',
-      routerConfig: router,
-      debugShowCheckedModeBanner: false,
+    return ToastificationWrapper(
+      child: MaterialApp.router(
+        title: 'Pulse',
+        routerConfig: router,
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

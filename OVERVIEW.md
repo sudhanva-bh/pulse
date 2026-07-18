@@ -676,6 +676,27 @@ status: delivered_locally
 - [ ] App promoted to alpha track
 - [ ] Crash-free rate visible in Firebase console
 
+### Week 9 — Dual-Routed File Transfer
+**Theme**: Send files seamlessly over the internet or LAN, with local-only storage and mid-transfer network handoffs.
+
+**Backend Tasks**
+- Implement a temporary chunk-relay or WebRTC signaling endpoint (since files must be stored locally only, the server acts purely as a passthrough or signaling server).
+- If using relay, implement `POST /relay/upload` and `GET /relay/download` where chunks are streamed in memory and immediately discarded.
+
+**Flutter Tasks**
+- **Dual-Routing**: Implement a `FileTransferService` that dynamically routes file chunks over either `Dio` (internet) or the active TCP `LanConnectionManager` socket.
+- **Chunking & Progress**: Split files into 1MB chunks. Track the index of successfully acknowledged chunks to render a real-time progress bar in the UI.
+- **Seamless Resume**: If the internet drops mid-transfer, the transfer pauses. When the user connects via LAN, the `FileTransferService` detects the active LAN socket, checks the last acknowledged chunk index, and resumes the transfer from that exact chunk.
+- **Local Storage**: Save received chunks directly to the device's local storage (e.g., Application Documents Directory) and store only the local file URI in the Drift database.
+- **UI Updates**: Add a file picker button to the message input. Add a `FileMessageBubble` that displays file metadata, the download/upload progress bar, and play/pause/resume controls.
+
+**Week 9 End Checklist**
+- [ ] Large file transfers successfully over the internet without being saved to the backend disk.
+- [ ] Progress bar updates accurately during transfer.
+- [ ] Disconnecting the internet pauses the transfer gracefully.
+- [ ] Connecting via QR LAN automatically resumes the file transfer from where it left off.
+- [ ] Files are accessible from local device storage after completion.
+
 ---
 
 ## 11. Folder Structure
