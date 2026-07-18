@@ -7,15 +7,17 @@ import 'package:frontend/core/storage/secure_storage.dart';
 import 'package:frontend/core/database/app_database.dart' as db;
 import 'package:frontend/features/chat/presentation/chat_provider.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:flutter/material.dart';
 
 enum WsConnectionState { connected, reconnecting, disconnected }
 
-class WebSocketManager {
+class WebSocketManager with WidgetsBindingObserver {
   final Ref ref;
   WebSocketChannel? _channel;
   Timer? _reconnectTimer;
   int _reconnectAttempt = 0;
   static const _wsUrl = 'ws://192.168.1.3:8000/ws';
+  Timer? _pingTimer;
 
   final _connectionStateController =
       StreamController<WsConnectionState>.broadcast();
@@ -27,6 +29,17 @@ class WebSocketManager {
 
   WebSocketManager(this.ref) {
     _connectionStateController.add(WsConnectionState.disconnected);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _reconnectTimer?.cancel();
+      _channel?.sink.close();
+      _channel = null;
+      connect();
+    }
   }
 
   Future<void> connect() async {
@@ -48,6 +61,13 @@ class WebSocketManager {
 
       _reconnectAttempt = 0;
       _connectionStateController.add(WsConnectionState.connected);
+
+      _pingTimer?.cancel();
+      _pingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+        if (_channel != null) {
+          _channel!.sink.add(jsonEncode({'type': 'ping'}));
+        }
+      });
 
       // Flush any queued status updates (e.g. from syncMissedMessages)
       for (final payload in _pendingStatusUpdates) {
@@ -173,6 +193,7 @@ class WebSocketManager {
   }
 
   void _scheduleReconnect() {
+    _pingTimer?.cancel();
     _connectionStateController.add(WsConnectionState.reconnecting);
     _channel?.sink.close();
     _channel = null;
@@ -205,6 +226,8 @@ class WebSocketManager {
   }
 
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _pingTimer?.cancel();
     _reconnectTimer?.cancel();
     _channel?.sink.close();
     _connectionStateController.close();

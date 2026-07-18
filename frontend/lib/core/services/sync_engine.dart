@@ -45,7 +45,7 @@ class SyncEngine {
       // On success, mark local as synced
       for (final msg in unsynced) {
         await _messageDao.markSynced(msg.id);
-        await _messageDao.updateStatus(msg.id, 'delivered');
+        await _messageDao.updateStatus(msg.id, 'sent');
       }
 
       if (unsynced.isNotEmpty) {

@@ -53,7 +53,10 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
             data = json.loads(data_str)
             
             msg_type = data.get("type")
-            payload = data.get("data")
+            if msg_type == "ping":
+                continue
+            
+            payload = data.get("data", {})
             
             if not msg_type or not payload:
                 continue
