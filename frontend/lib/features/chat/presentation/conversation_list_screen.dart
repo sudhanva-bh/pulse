@@ -7,10 +7,12 @@ class ConversationListScreen extends ConsumerStatefulWidget {
   const ConversationListScreen({super.key});
 
   @override
-  ConsumerState<ConversationListScreen> createState() => _ConversationListScreenState();
+  ConsumerState<ConversationListScreen> createState() =>
+      _ConversationListScreenState();
 }
 
-class _ConversationListScreenState extends ConsumerState<ConversationListScreen> {
+class _ConversationListScreenState
+    extends ConsumerState<ConversationListScreen> {
   bool _isSyncing = false;
 
   @override
@@ -24,7 +26,7 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
     try {
       final msgRepo = ref.read(messageRepositoryProvider);
       int loaded = await msgRepo.syncMissedMessages();
-      
+
       if (mounted && loaded > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sync complete: $loaded messages synced')),
@@ -115,8 +117,9 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
             itemCount: conversations.length,
             itemBuilder: (context, index) {
               final conv = conversations[index];
-              
-              String subtitleText = conv.lastMessageContent ?? 'No messages yet';
+
+              String subtitleText =
+                  conv.lastMessageContent ?? 'No messages yet';
               Color? subtitleColor;
               if (conv.status == 'pending') {
                 subtitleText = 'Pending confirmation...';
@@ -125,15 +128,20 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
                 subtitleText = 'Request was unsuccessful';
                 subtitleColor = Colors.red;
               }
-              
+
               return ListTile(
                 leading: CircleAvatar(
-                  child: Text(conv.title?.substring(0, 1).toUpperCase() ?? conv.id.substring(0, 1).toUpperCase()),
+                  child: Text(
+                    conv.title?.substring(0, 1).toUpperCase() ??
+                        conv.id.substring(0, 1).toUpperCase(),
+                  ),
                 ),
-                title: Text(conv.title ?? 'Conversation ${conv.id.substring(0, 4)}'),
+                title: Text(
+                  conv.title ?? 'Conversation ${conv.id.substring(0, 4)}',
+                ),
                 subtitle: Text(
-                  subtitleText, 
-                  maxLines: 1, 
+                  subtitleText,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: subtitleColor),
                 ),
@@ -156,7 +164,9 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
               title: const Text('Send Chat Request'),
               content: TextField(
                 controller: controller,
-                decoration: const InputDecoration(labelText: 'Username to chat with'),
+                decoration: const InputDecoration(
+                  labelText: 'Username to chat with',
+                ),
               ),
               actions: [
                 TextButton(
@@ -168,11 +178,17 @@ class _ConversationListScreenState extends ConsumerState<ConversationListScreen>
                     if (controller.text.isNotEmpty) {
                       final nav = Navigator.of(context);
                       try {
-                        await ref.read(conversationRepositoryProvider).createConversation(controller.text);
+                        await ref
+                            .read(conversationRepositoryProvider)
+                            .createConversation(controller.text);
                         nav.pop();
                       } catch (e) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to send request.')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Failed to send request.'),
+                            ),
+                          );
                         }
                       }
                     }

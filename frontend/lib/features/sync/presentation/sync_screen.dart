@@ -32,10 +32,12 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       });
 
       await convRepo.fetchConversations();
-      
+
       // Get the local list of conversations we just fetched
-      final conversations = await ref.read(conversationDaoProvider).getAllConversations();
-      
+      final conversations = await ref
+          .read(conversationDaoProvider)
+          .getAllConversations();
+
       if (conversations.isEmpty) {
         setState(() {
           _status = "No conversations found.";
@@ -49,13 +51,14 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       int i = 0;
       for (final conv in conversations) {
         setState(() {
-          _status = "Syncing messages for conversation ${i + 1} of ${conversations.length}...";
+          _status =
+              "Syncing messages for conversation ${i + 1} of ${conversations.length}...";
           _progress = i / conversations.length;
         });
-        
+
         int loaded = await msgRepo.fetchMessagesForConversation(conv.id);
         _totalMessagesLoaded += loaded;
-        
+
         i++;
       }
 
@@ -110,7 +113,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               if (_isFinished) ...[
                 const SizedBox(height: 24),
                 const Icon(Icons.check_circle, color: Colors.green, size: 32),
-              ]
+              ],
             ],
           ),
         ),

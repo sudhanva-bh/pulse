@@ -1,12 +1,4 @@
-enum MessageStatus {
-  pending,
-  sending,
-  sent,
-  delivered,
-  read,
-  failed,
-  queued,
-}
+enum MessageStatus { pending, sending, sent, delivered, read, failed, queued }
 
 class Message {
   final String id;

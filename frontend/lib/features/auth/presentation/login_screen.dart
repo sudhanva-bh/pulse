@@ -24,10 +24,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    await ref.read(authProvider.notifier).login(
-      _usernameController.text.trim(),
-      _passwordController.text,
-    );
+    await ref
+        .read(authProvider.notifier)
+        .login(_usernameController.text.trim(), _passwordController.text);
   }
 
   @override
@@ -52,15 +51,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               PasswordField(
                 controller: _passwordController,
                 obscure: _obscurePassword,
-                onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
+                onToggle: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: isLoading ? null : _submit,
                 child: isLoading
                     ? const SizedBox(
-                        height: 20, width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text('Sign in'),
               ),

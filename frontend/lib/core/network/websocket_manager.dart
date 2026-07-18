@@ -37,7 +37,7 @@ class WebSocketManager {
 
     try {
       _channel = WebSocketChannel.connect(url);
-      
+
       _runBackgroundDeltaSync();
 
       _channel!.stream.listen(
@@ -48,7 +48,7 @@ class WebSocketManager {
 
       _reconnectAttempt = 0;
       _connectionStateController.add(WsConnectionState.connected);
-      
+
       // Flush any queued status updates (e.g. from syncMissedMessages)
       for (final payload in _pendingStatusUpdates) {
         _channel!.sink.add(payload);
@@ -96,7 +96,11 @@ class WebSocketManager {
       id: drift.Value(payload['id']),
       participantIds: drift.Value(jsonEncode(payload['participant_ids'])),
       createdAt: drift.Value(DateTime.parse(payload['created_at'])),
-      lastMessageAt: drift.Value(payload['last_message_at'] != null ? DateTime.parse(payload['last_message_at']) : null),
+      lastMessageAt: drift.Value(
+        payload['last_message_at'] != null
+            ? DateTime.parse(payload['last_message_at'])
+            : null,
+      ),
       title: drift.Value(payload['title']),
       lastMessageContent: drift.Value(payload['last_message_content']),
       status: drift.Value(payload['status']),
@@ -108,7 +112,7 @@ class WebSocketManager {
   Future<void> _handleIncomingMessage(Map<String, dynamic> payload) async {
     final messageDao = ref.read(messageDaoProvider);
     final conversationDao = ref.read(conversationDaoProvider);
-    
+
     final convId = payload['conversation_id'] as String;
     final conv = await conversationDao.getConversation(convId);
     if (conv == null) {
@@ -130,9 +134,9 @@ class WebSocketManager {
 
     await messageDao.upsertMessage(companion);
     await conversationDao.updateLastMessage(
-      payload['conversation_id'], 
-      DateTime.parse(payload['created_at']), 
-      payload['content']
+      payload['conversation_id'],
+      DateTime.parse(payload['created_at']),
+      payload['content'],
     );
 
     // Send delivered receipt
@@ -144,10 +148,7 @@ class WebSocketManager {
   void sendStatusUpdate(String messageId, String status) {
     final payload = jsonEncode({
       'type': 'status_update',
-      'data': {
-        'message_id': messageId,
-        'status': status
-      }
+      'data': {'message_id': messageId, 'status': status},
     });
 
     if (_channel != null) {

@@ -5,16 +5,17 @@ import 'package:frontend/core/database/tables/conversations.dart';
 part 'conversation_dao.g.dart';
 
 @DriftAccessor(tables: [Conversations])
-class ConversationDao extends DatabaseAccessor<AppDatabase> with _$ConversationDaoMixin {
+class ConversationDao extends DatabaseAccessor<AppDatabase>
+    with _$ConversationDaoMixin {
   ConversationDao(super.db);
 
   Stream<List<Conversation>> watchAllConversations() {
-    return (select(conversations)
-          ..orderBy([
-            (t) => OrderingTerm(
-                expression: coalesce([t.lastMessageAt, t.createdAt]),
-                mode: OrderingMode.desc)
-          ]))
+    return (select(conversations)..orderBy([
+          (t) => OrderingTerm(
+            expression: coalesce([t.lastMessageAt, t.createdAt]),
+            mode: OrderingMode.desc,
+          ),
+        ]))
         .watch();
   }
 
@@ -23,7 +24,9 @@ class ConversationDao extends DatabaseAccessor<AppDatabase> with _$ConversationD
   }
 
   Future<Conversation?> getConversation(String id) {
-    return (select(conversations)..where((t) => t.id.equals(id))).getSingleOrNull();
+    return (select(
+      conversations,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 
   Future<void> upsertConversation(ConversationsCompanion conversation) {

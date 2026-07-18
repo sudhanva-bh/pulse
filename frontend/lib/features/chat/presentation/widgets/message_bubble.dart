@@ -6,11 +6,7 @@ class MessageBubble extends StatelessWidget {
   final Message message;
   final bool isMe;
 
-  const MessageBubble({
-    super.key,
-    required this.message,
-    required this.isMe,
-  });
+  const MessageBubble({super.key, required this.message, required this.isMe});
 
   FaIconData _getStatusIcon() {
     switch (message.status) {
@@ -31,14 +27,16 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
         decoration: BoxDecoration(
-          color: isMe ? theme.colorScheme.primaryContainer : theme.colorScheme.surfaceContainerHighest,
+          color: isMe
+              ? theme.colorScheme.primaryContainer
+              : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16).copyWith(
             bottomRight: isMe ? const Radius.circular(0) : null,
             bottomLeft: !isMe ? const Radius.circular(0) : null,
@@ -50,7 +48,9 @@ class MessageBubble extends StatelessWidget {
             Text(
               message.content,
               style: TextStyle(
-                color: isMe ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
+                color: isMe
+                    ? theme.colorScheme.onPrimaryContainer
+                    : theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 4),
@@ -58,9 +58,11 @@ class MessageBubble extends StatelessWidget {
               FaIcon(
                 _getStatusIcon(),
                 size: 12,
-                color: message.status == MessageStatus.failed 
-                  ? theme.colorScheme.error 
-                  : theme.colorScheme.onPrimaryContainer.withOpacity(0.7),
+                color: message.status == MessageStatus.failed
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.onPrimaryContainer.withValues(
+                        alpha: 0.7,
+                      ),
               ),
           ],
         ),

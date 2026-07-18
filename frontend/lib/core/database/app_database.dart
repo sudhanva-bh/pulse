@@ -28,12 +28,20 @@ class AppDatabase extends _$AppDatabase {
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
-        try { await m.addColumn(conversations, conversations.title); } catch (_) {}
-        try { await m.addColumn(conversations, conversations.lastMessageContent); } catch (_) {}
+        try {
+          await m.addColumn(conversations, conversations.title);
+        } catch (_) {}
+        try {
+          await m.addColumn(conversations, conversations.lastMessageContent);
+        } catch (_) {}
       }
       if (from < 3) {
-        try { await m.addColumn(conversations, conversations.status); } catch (_) {}
-        try { await m.addColumn(conversations, conversations.initiatorId); } catch (_) {}
+        try {
+          await m.addColumn(conversations, conversations.status);
+        } catch (_) {}
+        try {
+          await m.addColumn(conversations, conversations.initiatorId);
+        } catch (_) {}
       }
     },
   );

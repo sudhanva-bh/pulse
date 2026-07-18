@@ -36,10 +36,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
     setState(() => _localError = null);
 
-    await ref.read(authProvider.notifier).register(
-      _usernameController.text.trim(),
-      _passwordController.text,
-    );
+    await ref
+        .read(authProvider.notifier)
+        .register(_usernameController.text.trim(), _passwordController.text);
   }
 
   @override
@@ -68,7 +67,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               PasswordField(
                 controller: _passwordController,
                 obscure: _obscurePassword,
-                onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
+                onToggle: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
               const SizedBox(height: 16),
               PasswordField(
@@ -76,15 +76,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 label: 'Confirm password',
                 placeholder: 'Repeat your password',
                 obscure: _obscureConfirm,
-                onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                onToggle: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
               ),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: isLoading ? null : _submit,
                 child: isLoading
                     ? const SizedBox(
-                        height: 20, width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text('Create account'),
               ),

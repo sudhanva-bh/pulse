@@ -6,13 +6,18 @@ import 'package:frontend/core/database/app_database.dart';
 import 'package:frontend/features/chat/presentation/chat_provider.dart';
 
 sealed class AuthState {}
+
 class AuthInitial extends AuthState {}
+
 class AuthLoading extends AuthState {}
+
 class AuthAuthenticated extends AuthState {
   final User user;
   AuthAuthenticated(this.user);
 }
+
 class AuthUnauthenticated extends AuthState {}
+
 class AuthError extends AuthState {
   final String message;
   AuthError(this.message);
@@ -21,7 +26,10 @@ class AuthError extends AuthState {
 final authRepositoryProvider = Provider((ref) => AuthRepository());
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
-  (ref) => AuthNotifier(ref.read(authRepositoryProvider), ref.read(appDatabaseProvider)),
+  (ref) => AuthNotifier(
+    ref.read(authRepositoryProvider),
+    ref.read(appDatabaseProvider),
+  ),
 );
 
 class AuthNotifier extends StateNotifier<AuthState> {
@@ -32,9 +40,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> checkSession() async {
     final loggedIn = await _repo.isLoggedIn();
-    state = loggedIn ? AuthAuthenticated(
-      User(id: '', username: ''),  // hydrated properly in Week 6 via /auth/me
-    ) : AuthUnauthenticated();
+    state = loggedIn
+        ? AuthAuthenticated(
+            User(
+              id: '',
+              username: '',
+            ), // hydrated properly in Week 6 via /auth/me
+          )
+        : AuthUnauthenticated();
   }
 
   Future<void> login(String username, String password) async {

@@ -8,6 +8,7 @@ import 'package:frontend/features/chat/presentation/widgets/message_input.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:frontend/core/network/websocket_manager.dart';
+
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
 
@@ -48,7 +49,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ref.listen(typingStreamProvider, (prev, next) {
       if (next.hasValue && next.value != null) {
         final data = next.value!;
-        if (data['conversation_id'] == widget.conversationId && data['sender_id'] != _currentUserId) {
+        if (data['conversation_id'] == widget.conversationId &&
+            data['sender_id'] != _currentUserId) {
           setState(() {
             _isTyping = true;
           });
@@ -64,9 +66,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
     });
 
-    final messagesAsyncValue = ref.watch(messagesProvider(widget.conversationId));
+    final messagesAsyncValue = ref.watch(
+      messagesProvider(widget.conversationId),
+    );
     final conversationsAsyncValue = ref.watch(conversationsProvider);
-    
+
     final conversation = conversationsAsyncValue.value?.firstWhere(
       (c) => c.id == widget.conversationId,
       orElse: () => throw Exception('Conversation not found'),
@@ -77,19 +81,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       bottomWidget = const SizedBox.shrink();
     } else if (conversation.status == 'pending') {
       bottomWidget = Container(
-        color: Colors.orange.withOpacity(0.1),
+        color: Colors.orange.withValues(alpha: 0.1),
         padding: const EdgeInsets.all(16),
         child: Text(
-          conversation.initiatorId == _currentUserId 
-            ? 'Waiting for user to accept your chat request...'
-            : 'Accept request from the Chat Requests tab to reply.',
+          conversation.initiatorId == _currentUserId
+              ? 'Waiting for user to accept your chat request...'
+              : 'Accept request from the Chat Requests tab to reply.',
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.orange,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       );
     } else if (conversation.status == 'rejected') {
       bottomWidget = Container(
-        color: Colors.red.withOpacity(0.1),
+        color: Colors.red.withValues(alpha: 0.1),
         padding: const EdgeInsets.all(16),
         child: const Text(
           'Your chat request was declined.',
@@ -102,11 +109,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         conversationId: widget.conversationId,
         onSend: (content) {
           if (_currentUserId != null) {
-            ref.read(messageRepositoryProvider).sendMessage(
-              widget.conversationId, 
-              content, 
-              _currentUserId!
-            );
+            ref
+                .read(messageRepositoryProvider)
+                .sendMessage(widget.conversationId, content, _currentUserId!);
           }
         },
       );
@@ -127,27 +132,47 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       return Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const FaIcon(FontAwesomeIcons.wifi, size: 12, color: Colors.green),
+                          const FaIcon(
+                            FontAwesomeIcons.wifi,
+                            size: 12,
+                            color: Colors.green,
+                          ),
                           const SizedBox(width: 4),
-                          Text('Connected', style: Theme.of(context).textTheme.bodySmall),
+                          Text(
+                            'Connected',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                         ],
                       );
                     } else if (state == WsConnectionState.reconnecting) {
                       return Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          LoadingAnimationWidget.progressiveDots(color: Colors.orange, size: 12),
+                          LoadingAnimationWidget.progressiveDots(
+                            color: Colors.orange,
+                            size: 12,
+                          ),
                           const SizedBox(width: 4),
-                          Text('Reconnecting...', style: Theme.of(context).textTheme.bodySmall),
+                          Text(
+                            'Reconnecting...',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                         ],
                       );
                     }
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const FaIcon(FontAwesomeIcons.wifi, size: 12, color: Colors.red),
+                        const FaIcon(
+                          FontAwesomeIcons.wifi,
+                          size: 12,
+                          color: Colors.red,
+                        ),
                         const SizedBox(width: 4),
-                        Text('Disconnected', style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          'Disconnected',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ],
                     );
                   },
@@ -162,37 +187,44 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: _currentUserId == null 
-              ? const Center(child: CircularProgressIndicator())
-              : messagesAsyncValue.when(
-              data: (messages) {
-                if (messages.isEmpty) {
-                  return const Center(child: Text('No messages yet.'));
-                }
-                return ListView.builder(
-                  reverse: true, // Display bottom-up
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    return MessageBubble(
-                      message: message,
-                      isMe: message.senderId == _currentUserId,
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-            ),
+            child: _currentUserId == null
+                ? const Center(child: CircularProgressIndicator())
+                : messagesAsyncValue.when(
+                    data: (messages) {
+                      if (messages.isEmpty) {
+                        return const Center(child: Text('No messages yet.'));
+                      }
+                      return ListView.builder(
+                        reverse: true, // Display bottom-up
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          return MessageBubble(
+                            message: message,
+                            isMe: message.senderId == _currentUserId,
+                          );
+                        },
+                      );
+                    },
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (err, stack) => Center(child: Text('Error: $err')),
+                  ),
           ),
           if (_isTyping)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 4.0,
+              ),
               child: Row(
                 children: [
                   LoadingAnimationWidget.waveDots(color: Colors.grey, size: 20),
                   const SizedBox(width: 8),
-                  Text('Typing...', style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    'Typing...',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),

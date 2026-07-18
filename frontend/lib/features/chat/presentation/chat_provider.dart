@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/core/database/app_database.dart' hide Message, Conversation;
+import 'package:frontend/core/database/app_database.dart'
+    hide Message, Conversation;
 import 'package:frontend/core/database/daos/conversation_dao.dart';
 import 'package:frontend/core/database/daos/message_dao.dart';
 import 'package:frontend/features/chat/data/conversation_repository.dart';
@@ -35,7 +36,10 @@ final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
   return ConversationRepository(ref.watch(conversationDaoProvider));
 });
 
-final messagesProvider = StreamProvider.family<List<Message>, String>((ref, conversationId) {
+final messagesProvider = StreamProvider.family<List<Message>, String>((
+  ref,
+  conversationId,
+) {
   return ref.watch(messageRepositoryProvider).watchMessages(conversationId);
 });
 
@@ -43,32 +47,47 @@ final conversationsProvider = StreamProvider<List<Conversation>>((ref) {
   return ref.watch(conversationRepositoryProvider).watchConversations();
 });
 
-final acceptedConversationsProvider = StreamProvider<List<Conversation>>((ref) async* {
-  final currentUser = await ref.watch(currentUserProvider.future);
-  if (currentUser == null) {
-    yield [];
-    return;
-  }
-  
-  await for (final list in ref.watch(conversationRepositoryProvider).watchConversations()) {
-    yield list.where((c) => c.status == 'accepted' || (c.status == 'pending' && c.initiatorId == currentUser) || (c.status == 'rejected' && c.initiatorId == currentUser)).toList();
-  }
-});
-
-final pendingRequestsProvider = StreamProvider<List<Conversation>>((ref) async* {
+final acceptedConversationsProvider = StreamProvider<List<Conversation>>((
+  ref,
+) async* {
   final currentUser = await ref.watch(currentUserProvider.future);
   if (currentUser == null) {
     yield [];
     return;
   }
 
-  await for (final list in ref.watch(conversationRepositoryProvider).watchConversations()) {
-    yield list.where((c) => c.status == 'pending' && c.initiatorId != currentUser).toList();
+  await for (final list
+      in ref.watch(conversationRepositoryProvider).watchConversations()) {
+    yield list
+        .where(
+          (c) =>
+              c.status == 'accepted' ||
+              (c.status == 'pending' && c.initiatorId == currentUser) ||
+              (c.status == 'rejected' && c.initiatorId == currentUser),
+        )
+        .toList();
   }
 });
 
-final unreadRequestsCountProvider = StreamProvider<int>((ref) {
-  return ref.watch(pendingRequestsProvider.stream).map((list) => list.length);
+final pendingRequestsProvider = StreamProvider<List<Conversation>>((
+  ref,
+) async* {
+  final currentUser = await ref.watch(currentUserProvider.future);
+  if (currentUser == null) {
+    yield [];
+    return;
+  }
+
+  await for (final list
+      in ref.watch(conversationRepositoryProvider).watchConversations()) {
+    yield list
+        .where((c) => c.status == 'pending' && c.initiatorId != currentUser)
+        .toList();
+  }
+});
+
+final unreadRequestsCountProvider = Provider<AsyncValue<int>>((ref) {
+  return ref.watch(pendingRequestsProvider).whenData((list) => list.length);
 });
 
 final typingStreamProvider = StreamProvider<Map<String, dynamic>?>((ref) {

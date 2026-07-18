@@ -28,7 +28,7 @@ class MessageRepository {
       final dio = ApiClient().dio;
       final response = await dio.get('/conversations/$conversationId/messages');
       final List data = response.data;
-      
+
       int loaded = 0;
       for (var json in data) {
         final companion = db.MessagesCompanion(
@@ -52,15 +52,20 @@ class MessageRepository {
 
   Future<int> syncMissedMessages() async {
     try {
-      final since = await SecureStorage.getLastSyncTimestamp() ?? DateTime.fromMillisecondsSinceEpoch(0).toUtc();
-      
+      final since =
+          await SecureStorage.getLastSyncTimestamp() ??
+          DateTime.fromMillisecondsSinceEpoch(0).toUtc();
+
       final dio = ApiClient().dio;
-      final response = await dio.get('/messages/sync', queryParameters: {'since': since.toIso8601String()});
+      final response = await dio.get(
+        '/messages/sync',
+        queryParameters: {'since': since.toIso8601String()},
+      );
       final List data = response.data;
-      
+
       int loaded = 0;
       DateTime? maxSyncedAt;
-      
+
       for (var json in data) {
         final companion = db.MessagesCompanion(
           id: drift.Value(json['id']),
@@ -74,32 +79,36 @@ class MessageRepository {
         );
         await _messageDao.upsertMessage(companion);
         loaded++;
-        
+
         final currentUserId = await SecureStorage.getUserId();
         if (json['sender_id'] != currentUserId && json['status'] == 'sent') {
           _wsManager.sendStatusUpdate(json['id'], 'delivered');
         }
-        
+
         final syncedAt = DateTime.parse(json['synced_at']).toUtc();
         if (maxSyncedAt == null || syncedAt.isAfter(maxSyncedAt)) {
           maxSyncedAt = syncedAt;
         }
       }
-      
+
       if (maxSyncedAt != null) {
         await SecureStorage.saveLastSyncTimestamp(maxSyncedAt);
       }
-      
+
       return loaded;
     } catch (e) {
       return 0; // Return 0 loaded on error
     }
   }
 
-  Future<void> sendMessage(String conversationId, String content, String senderId) async {
+  Future<void> sendMessage(
+    String conversationId,
+    String content,
+    String senderId,
+  ) async {
     final now = DateTime.now().toUtc();
     final messageId = _uuid.v4();
-    
+
     final companion = db.MessagesCompanion(
       id: drift.Value(messageId),
       conversationId: drift.Value(conversationId),

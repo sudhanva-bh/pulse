@@ -10,9 +10,7 @@ class RequestsScreen extends ConsumerWidget {
     final requestsAsyncValue = ref.watch(pendingRequestsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chat Requests'),
-      ),
+      appBar: AppBar(title: const Text('Chat Requests')),
       body: requestsAsyncValue.when(
         data: (requests) {
           if (requests.isEmpty) {
@@ -35,10 +33,16 @@ class RequestsScreen extends ConsumerWidget {
                       icon: const Icon(Icons.check_circle, color: Colors.green),
                       onPressed: () async {
                         try {
-                          await ref.read(conversationRepositoryProvider).acceptRequest(req.id);
+                          await ref
+                              .read(conversationRepositoryProvider)
+                              .acceptRequest(req.id);
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to accept request')));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to accept request'),
+                              ),
+                            );
                           }
                         }
                       },
@@ -47,10 +51,16 @@ class RequestsScreen extends ConsumerWidget {
                       icon: const Icon(Icons.cancel, color: Colors.red),
                       onPressed: () async {
                         try {
-                          await ref.read(conversationRepositoryProvider).rejectRequest(req.id);
+                          await ref
+                              .read(conversationRepositoryProvider)
+                              .rejectRequest(req.id);
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to reject request')));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to reject request'),
+                              ),
+                            );
                           }
                         }
                       },

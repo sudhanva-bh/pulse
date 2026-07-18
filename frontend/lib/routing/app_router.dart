@@ -13,10 +13,7 @@ import 'package:frontend/features/sync/presentation/sync_screen.dart';
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
   RouterNotifier(this._ref) {
-    _ref.listen<AuthState>(
-      authProvider,
-      (_, _) => notifyListeners(),
-    );
+    _ref.listen<AuthState>(authProvider, (_, _) => notifyListeners());
   }
 }
 
@@ -59,7 +56,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
       ),
-      GoRoute(path: '/home', builder: (context, state) => const ConversationListScreen()),
+      GoRoute(
+        path: '/home',
+        builder: (context, state) => const ConversationListScreen(),
+      ),
       GoRoute(
         path: '/chat/:conversationId',
         builder: (context, state) {
@@ -75,10 +75,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
       ),
-      GoRoute(
-        path: '/sync',
-        builder: (context, state) => const SyncScreen(),
-      ),
+      GoRoute(path: '/sync', builder: (context, state) => const SyncScreen()),
     ],
   );
 });
