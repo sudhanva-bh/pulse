@@ -110,6 +110,14 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
                     if not conv or user.id not in conv.participant_ids:
                         continue
                         
+                    existing_msg = db.query(Message).filter(Message.id == msg_create.id).first()
+                    if existing_msg:
+                        await manager.send_personal_message(json.dumps({
+                            "type": "ack",
+                            "data": {"message_id": existing_msg.id}
+                        }), user.id)
+                        continue
+                        
                     new_msg = Message(
                         id=msg_create.id,
                         conversation_id=msg_create.conversation_id,
@@ -157,6 +165,10 @@ def create_message(
     conv = db.query(Conversation).filter(Conversation.id == msg_data.conversation_id).first()
     if not conv or current_user.id not in conv.participant_ids:
         raise HTTPException(status_code=404, detail="Conversation not found")
+        
+    existing_msg = db.query(Message).filter(Message.id == msg_data.id).first()
+    if existing_msg:
+        return existing_msg
         
     new_msg = Message(
         id=msg_data.id,
