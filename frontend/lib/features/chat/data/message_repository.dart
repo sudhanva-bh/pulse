@@ -75,6 +75,11 @@ class MessageRepository {
         await _messageDao.upsertMessage(companion);
         loaded++;
         
+        final currentUserId = await SecureStorage.getUserId();
+        if (json['sender_id'] != currentUserId && json['status'] == 'sent') {
+          _wsManager.sendStatusUpdate(json['id'], 'delivered');
+        }
+        
         final syncedAt = DateTime.parse(json['synced_at']).toUtc();
         if (maxSyncedAt == null || syncedAt.isAfter(maxSyncedAt)) {
           maxSyncedAt = syncedAt;

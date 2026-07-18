@@ -37,22 +37,23 @@ class WebSocketManager {
 
     try {
       _channel = WebSocketChannel.connect(url);
-      _connectionStateController.add(WsConnectionState.connected);
-      _reconnectAttempt = 0;
       
       _runBackgroundDeltaSync();
 
       _channel!.stream.listen(
-        (message) {
-          _handleMessage(message);
-        },
-        onDone: () {
-          _scheduleReconnect();
-        },
-        onError: (error) {
-          _scheduleReconnect();
-        },
+        _handleMessage,
+        onDone: _scheduleReconnect,
+        onError: (error) => _scheduleReconnect(),
       );
+
+      _reconnectAttempt = 0;
+      _connectionStateController.add(WsConnectionState.connected);
+      
+      // Flush any queued status updates (e.g. from syncMissedMessages)
+      for (final payload in _pendingStatusUpdates) {
+        _channel!.sink.add(payload);
+      }
+      _pendingStatusUpdates.clear();
     } catch (e) {
       _scheduleReconnect();
     }
@@ -138,15 +139,21 @@ class WebSocketManager {
     sendStatusUpdate(msgId, 'delivered');
   }
 
+  final List<String> _pendingStatusUpdates = [];
+
   void sendStatusUpdate(String messageId, String status) {
+    final payload = jsonEncode({
+      'type': 'status_update',
+      'data': {
+        'message_id': messageId,
+        'status': status
+      }
+    });
+
     if (_channel != null) {
-      _channel!.sink.add(jsonEncode({
-        'type': 'status_update',
-        'data': {
-          'message_id': messageId,
-          'status': status,
-        }
-      }));
+      _channel!.sink.add(payload);
+    } else {
+      _pendingStatusUpdates.add(payload);
     }
   }
 
