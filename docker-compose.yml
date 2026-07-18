@@ -23,6 +23,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/pulse
       - WATCHFILES_FORCE_POLLING=true
+    env_file:
+      - .env
     volumes:
       - .:/app
 

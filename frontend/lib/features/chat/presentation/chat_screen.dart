@@ -8,6 +8,8 @@ import 'package:frontend/features/chat/presentation/widgets/message_input.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:frontend/core/network/websocket_manager.dart';
+import 'package:frontend/features/chat/domain/message.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -183,6 +185,38 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ],
         ),
+        actions: [
+          Consumer(
+            builder: (context, ref, child) {
+              final stateAsync = ref.watch(connectionStateProvider);
+              final isDisconnected = stateAsync.valueOrNull != WsConnectionState.connected;
+              if (isDisconnected) {
+                return PopupMenuButton<String>(
+                  icon: const FaIcon(FontAwesomeIcons.networkWired, size: 20),
+                  onSelected: (value) {
+                    if (value == 'share') {
+                      context.push('/lan/share');
+                    } else if (value == 'scan') {
+                      context.push('/lan/scan');
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'share',
+                      child: Text('Send via Local Network'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'scan',
+                      child: Text('Receive via Local Network'),
+                    ),
+                  ],
+                );
+              }
+              return const SizedBox();
+            },
+          ),
+          const SizedBox(width: 16),
+        ],
       ),
       body: Column(
         children: [
@@ -228,7 +262,103 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ],
               ),
             ),
+          Consumer(
+            builder: (context, ref, child) {
+              final stateAsync = ref.watch(connectionStateProvider);
+              final isDisconnected = stateAsync.hasValue && stateAsync.value != WsConnectionState.connected;
+              
+              bool hasUnsynced = false;
+              if (messagesAsyncValue.hasValue) {
+                final messages = messagesAsyncValue.value!;
+                hasUnsynced = messages.any((m) => 
+                  !m.syncedToCloud && 
+                  m.senderId == _currentUserId && 
+                  m.status != MessageStatus.deliveredLocally
+                );
+              }
+
+              return _LanBanner(shouldShow: isDisconnected && hasUnsynced);
+            },
+          ),
           bottomWidget,
+        ],
+      ),
+    );
+  }
+}
+
+class _LanBanner extends StatefulWidget {
+  final bool shouldShow;
+  
+  const _LanBanner({required this.shouldShow});
+
+  @override
+  State<_LanBanner> createState() => _LanBannerState();
+}
+
+class _LanBannerState extends State<_LanBanner> {
+  bool _visible = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateState(widget.shouldShow);
+  }
+
+  @override
+  void didUpdateWidget(covariant _LanBanner oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.shouldShow != widget.shouldShow) {
+      _updateState(widget.shouldShow);
+    }
+  }
+
+  void _updateState(bool shouldShow) {
+    if (shouldShow) {
+      _timer?.cancel();
+      _timer = Timer(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() => _visible = true);
+        }
+      });
+    } else {
+      _timer?.cancel();
+      if (_visible && mounted) {
+        setState(() => _visible = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_visible) return const SizedBox.shrink();
+    
+    return Container(
+      color: Colors.blue.withValues(alpha: 0.1),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        children: [
+          const FaIcon(FontAwesomeIcons.networkWired, color: Colors.blue, size: 16),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'You have queued messages. Send via Local Network?',
+              style: TextStyle(color: Colors.blue, fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              context.push('/lan/share');
+            },
+            child: const Text('Share QR'),
+          )
         ],
       ),
     );

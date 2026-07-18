@@ -50,6 +50,7 @@ class WebSocketManager with WidgetsBindingObserver {
 
     try {
       _channel = WebSocketChannel.connect(url);
+      await _channel!.ready;
 
       _runBackgroundDeltaSync();
 

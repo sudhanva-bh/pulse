@@ -33,4 +33,12 @@ class _AuthInterceptor extends Interceptor {
     }
     handler.next(options);
   }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401) {
+      await SecureStorage.clear();
+    }
+    handler.next(err);
+  }
 }

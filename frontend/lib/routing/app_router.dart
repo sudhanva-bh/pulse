@@ -9,6 +9,8 @@ import 'package:frontend/features/chat/presentation/chat_screen.dart';
 import 'package:frontend/features/chat/presentation/requests_screen.dart';
 import 'package:frontend/features/settings/presentation/settings_screen.dart';
 import 'package:frontend/features/sync/presentation/sync_screen.dart';
+import 'package:frontend/features/lan/presentation/qr_share_screen.dart';
+import 'package:frontend/features/lan/presentation/qr_scan_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -76,6 +78,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(path: '/sync', builder: (context, state) => const SyncScreen()),
+      GoRoute(
+        path: '/lan/share',
+        builder: (context, state) => const QrShareScreen(),
+      ),
+      GoRoute(
+        path: '/lan/scan',
+        builder: (context, state) => const QrScanScreen(),
+      ),
     ],
   );
 });

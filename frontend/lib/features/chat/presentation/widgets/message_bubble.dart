@@ -19,6 +19,8 @@ class MessageBubble extends StatelessWidget {
       case MessageStatus.delivered:
       case MessageStatus.read:
         return FontAwesomeIcons.checkDouble;
+      case MessageStatus.deliveredLocally:
+        return FontAwesomeIcons.networkWired;
       case MessageStatus.failed:
         return FontAwesomeIcons.circleExclamation;
     }
