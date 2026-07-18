@@ -65,11 +65,14 @@ class MessageRepository {
     return success ? 1 : 0;
   }
 
-  Future<void> sendMessage(
+  Future<String> sendMessage(
     String conversationId,
     String content,
-    String senderId,
-  ) async {
+    String senderId, {
+    String? attachmentUri,
+    int? attachmentSize,
+    String? attachmentName,
+  }) async {
     final now = DateTime.now().toUtc();
     final messageId = _uuid.v4();
 
@@ -82,12 +85,19 @@ class MessageRepository {
       createdAt: drift.Value(now),
       updatedAt: drift.Value(now),
       syncedToCloud: const drift.Value(false),
+      attachmentUri: drift.Value(attachmentUri),
+      attachmentSize: drift.Value(attachmentSize),
+      attachmentName: drift.Value(attachmentName),
     );
 
     await _messageDao.insertMessage(companion);
 
     // Update conversation list UI
-    await _conversationDao.updateLastMessage(conversationId, now, content);
+    await _conversationDao.updateLastMessage(
+      conversationId,
+      now,
+      attachmentName != null ? 'Attachment: $attachmentName' : content,
+    );
 
     // Send over websocket
     final payload = {
@@ -96,7 +106,9 @@ class MessageRepository {
       'content': content,
       'created_at': now.toIso8601String(),
       'updated_at': now.toIso8601String(),
-      'sender_id': senderId, // required for LanConnectionManager
+      'sender_id': senderId,
+      'attachment_name': ?attachmentName,
+      'attachment_size': ?attachmentSize,
     };
 
     if (_lanManager.isConnected) {
@@ -105,6 +117,8 @@ class MessageRepository {
     } else {
       _wsManager.sendMessage(payload);
     }
+
+    return messageId;
   }
 
   Future<void> updateStatus(String id, MessageStatus status) async {
@@ -124,6 +138,9 @@ class MessageRepository {
       createdAt: m.createdAt,
       updatedAt: m.updatedAt,
       syncedToCloud: m.syncedToCloud,
+      attachmentUri: m.attachmentUri,
+      attachmentSize: m.attachmentSize,
+      attachmentName: m.attachmentName,
     );
   }
 }

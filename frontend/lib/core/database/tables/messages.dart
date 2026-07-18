@@ -10,6 +10,10 @@ class Messages extends Table {
   DateTimeColumn get updatedAt => dateTime()();
   BoolColumn get syncedToCloud => boolean().withDefault(Constant(false))();
 
+  TextColumn get attachmentUri => text().nullable()();
+  IntColumn get attachmentSize => integer().nullable()();
+  TextColumn get attachmentName => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

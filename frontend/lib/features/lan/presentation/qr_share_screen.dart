@@ -26,21 +26,23 @@ class _QrShareScreenState extends ConsumerState<QrShareScreen> {
   Future<void> _initServer() async {
     final server = ref.read(lanServerProvider);
     final payload = await server.start();
-    
+
     if (mounted) {
       if (payload == null) {
-         toastification.show(
-           context: context,
-           title: const Text('WiFi Required'),
-           description: const Text('Please connect to a WiFi network to use LAN delivery.'),
-           type: ToastificationType.error,
-         );
-         Navigator.of(context).pop();
+        toastification.show(
+          context: context,
+          title: const Text('WiFi Required'),
+          description: const Text(
+            'Please connect to a WiFi network to use LAN delivery.',
+          ),
+          type: ToastificationType.error,
+        );
+        Navigator.of(context).pop();
       } else {
-         setState(() {
-           _payload = payload;
-           _isLoading = false;
-         });
+        setState(() {
+          _payload = payload;
+          _isLoading = false;
+        });
       }
     }
   }
@@ -50,23 +52,29 @@ class _QrShareScreenState extends ConsumerState<QrShareScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Send via LAN')),
       body: Center(
-        child: _isLoading 
-          ? LoadingAnimationWidget.progressiveDots(color: Colors.blue, size: 40)
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Scan this QR with the other device', style: TextStyle(fontSize: 18)),
-                const SizedBox(height: 32),
-                QrImageView(
-                  data: jsonEncode(_payload),
-                  version: QrVersions.auto,
-                  size: 250.0,
-                  backgroundColor: Colors.white,
-                ),
-                const SizedBox(height: 32),
-                const Text('Expires in 60 seconds.'),
-              ],
-            ),
+        child: _isLoading
+            ? LoadingAnimationWidget.progressiveDots(
+                color: Colors.blue,
+                size: 40,
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Scan this QR with the other device',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 32),
+                  QrImageView(
+                    data: jsonEncode(_payload),
+                    version: QrVersions.auto,
+                    size: 250.0,
+                    backgroundColor: Colors.white,
+                  ),
+                  const SizedBox(height: 32),
+                  const Text('Expires in 60 seconds.'),
+                ],
+              ),
       ),
     );
   }

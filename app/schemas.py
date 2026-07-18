@@ -45,6 +45,8 @@ class MessageCreate(BaseModel):
     content: str
     created_at: datetime
     updated_at: datetime
+    attachment_name: Optional[str] = None
+    attachment_size: Optional[int] = None
 
 
 class MessageResponse(BaseModel):
@@ -56,6 +58,8 @@ class MessageResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     synced_at: datetime
+    attachment_name: Optional[str] = None
+    attachment_size: Optional[int] = None
 
     model_config = {"from_attributes": True}
 

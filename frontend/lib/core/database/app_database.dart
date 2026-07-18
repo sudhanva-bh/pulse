@@ -19,7 +19,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -41,6 +41,17 @@ class AppDatabase extends _$AppDatabase {
         } catch (_) {}
         try {
           await m.addColumn(conversations, conversations.initiatorId);
+        } catch (_) {}
+      }
+      if (from < 4) {
+        try {
+          await m.addColumn(messages, messages.attachmentUri);
+        } catch (_) {}
+        try {
+          await m.addColumn(messages, messages.attachmentSize);
+        } catch (_) {}
+        try {
+          await m.addColumn(messages, messages.attachmentName);
         } catch (_) {}
       }
     },

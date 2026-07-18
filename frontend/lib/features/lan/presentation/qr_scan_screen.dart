@@ -25,33 +25,37 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
         final payload = jsonDecode(raw);
         final expiry = payload['expiry'] as int;
         if (DateTime.now().millisecondsSinceEpoch > expiry) {
-           toastification.show(
-             context: context,
-             title: const Text('QR Expired'),
-             type: ToastificationType.error,
-           );
-           if (mounted) setState(() => _isProcessing = false);
-           return;
+          toastification.show(
+            context: context,
+            title: const Text('QR Expired'),
+            type: ToastificationType.error,
+          );
+          if (mounted) setState(() => _isProcessing = false);
+          return;
         }
 
         final client = ref.read(lanClientProvider);
-        final count = await client.connectAndReceive(payload['ip'], payload['port'], payload['token']);
-        
+        final count = await client.connectAndReceive(
+          payload['ip'],
+          payload['port'],
+          payload['token'],
+        );
+
         if (mounted) {
-           if (count > 0) {
-             toastification.show(
-               context: context,
-               title: Text('Received $count messages!'),
-               type: ToastificationType.success,
-             );
-           } else {
-             toastification.show(
-               context: context,
-               title: const Text('Transfer Failed'),
-               type: ToastificationType.error,
-             );
-           }
-           Navigator.of(context).pop();
+          if (count > 0) {
+            toastification.show(
+              context: context,
+              title: Text('Received $count messages!'),
+              type: ToastificationType.success,
+            );
+          } else {
+            toastification.show(
+              context: context,
+              title: const Text('Transfer Failed'),
+              type: ToastificationType.error,
+            );
+          }
+          Navigator.of(context).pop();
         }
       } catch (e) {
         if (mounted) setState(() => _isProcessing = false);
@@ -65,11 +69,8 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
       appBar: AppBar(title: const Text('Receive via LAN')),
       body: Stack(
         children: [
-          MobileScanner(
-            onDetect: _onDetect,
-          ),
-          if (_isProcessing)
-             const Center(child: CircularProgressIndicator()),
+          MobileScanner(onDetect: _onDetect),
+          if (_isProcessing) const Center(child: CircularProgressIndicator()),
         ],
       ),
     );

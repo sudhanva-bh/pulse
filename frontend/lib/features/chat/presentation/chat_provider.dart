@@ -34,10 +34,10 @@ final messageRepositoryProvider = Provider<MessageRepository>((ref) {
   final syncEngine = ref.read(syncEngineProvider);
   final lanManager = ref.read(lanConnectionManagerProvider);
   return MessageRepository(
-    messageDao, 
-    conversationDao, 
-    wsManager, 
-    syncEngine, 
+    messageDao,
+    conversationDao,
+    wsManager,
+    syncEngine,
     lanManager,
   );
 });

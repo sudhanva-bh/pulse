@@ -9,6 +9,7 @@ import 'package:frontend/features/chat/presentation/chat_provider.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:frontend/core/services/lan_connection_manager.dart';
+import 'package:frontend/core/services/file_transfer_service.dart';
 
 enum WsConnectionState { connected, reconnecting, disconnected }
 
@@ -57,8 +58,9 @@ class WebSocketManager with WidgetsBindingObserver {
       );
 
       _reconnectAttempt = 0;
-      ref.read(connectionStateProvider.notifier).state = WsConnectionState.connected;
-      
+      ref.read(connectionStateProvider.notifier).state =
+          WsConnectionState.connected;
+
       // Successfully reconnected to cloud: drop any active LAN sockets
       ref.read(lanConnectionManagerProvider).disconnect();
 
@@ -161,6 +163,18 @@ class WebSocketManager with WidgetsBindingObserver {
 
     // Send delivered receipt
     sendStatusUpdate(msgId, 'delivered');
+
+    // Auto-start file download if it has an attachment
+    if (payload['attachment_name'] != null &&
+        payload['attachment_size'] != null) {
+      ref
+          .read(fileTransferProvider.notifier)
+          .startDownload(
+            msgId,
+            payload['attachment_name'],
+            payload['attachment_size'],
+          );
+    }
   }
 
   final List<String> _pendingStatusUpdates = [];
@@ -194,7 +208,8 @@ class WebSocketManager with WidgetsBindingObserver {
 
   void _scheduleReconnect() {
     _pingTimer?.cancel();
-    ref.read(connectionStateProvider.notifier).state = WsConnectionState.reconnecting;
+    ref.read(connectionStateProvider.notifier).state =
+        WsConnectionState.reconnecting;
     _channel?.sink.close();
     _channel = null;
 

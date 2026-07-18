@@ -19,7 +19,7 @@ class LanServer {
   Future<Map<String, dynamic>?> start() async {
     final info = NetworkInfo();
     final ip = await info.getWifiIP();
-    
+
     if (ip == null) return null;
 
     _serverSocket = await ServerSocket.bind(ip, 0);
@@ -43,9 +43,9 @@ class LanServer {
   void _handleConnection(Socket socket) {
     // Pass socket to connection manager
     final manager = ref.read(lanConnectionManagerProvider);
-    
+
     manager.attachSocket(
-      socket, 
+      socket,
       expectedToken: _token,
       onAuthenticated: () async {
         // Send queued messages upon connection
@@ -61,10 +61,10 @@ class LanServer {
           });
           await _messageDao.updateStatus(m.id, 'deliveredLocally');
         }
-        
+
         // Stop accepting new connections
         stop();
-      }
+      },
     );
   }
 

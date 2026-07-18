@@ -41,6 +41,15 @@ class MessageDao extends DatabaseAccessor<AppDatabase> with _$MessageDaoMixin {
     );
   }
 
+  Future<void> updateAttachment(String id, String attachmentUri) {
+    return (update(messages)..where((t) => t.id.equals(id))).write(
+      MessagesCompanion(
+        attachmentUri: Value(attachmentUri),
+        updatedAt: Value(DateTime.now().toUtc()),
+      ),
+    );
+  }
+
   Future<void> upsertMessage(MessagesCompanion message) {
     return into(messages).insertOnConflictUpdate(message);
   }

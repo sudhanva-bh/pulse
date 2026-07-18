@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/storage/secure_storage.dart';
 import 'package:frontend/core/network/websocket_manager.dart';
+import 'package:file_picker/file_picker.dart';
 import 'dart:async';
 
 class MessageInput extends ConsumerStatefulWidget {
   final String conversationId;
   final Function(String content) onSend;
+  final Function(String filePath, String fileName, int fileSize)? onSendFile;
 
   const MessageInput({
     super.key,
     required this.conversationId,
     required this.onSend,
+    this.onSendFile,
   });
 
   @override
@@ -70,12 +73,24 @@ class _MessageInputState extends ConsumerState<MessageInput> {
     SecureStorage.clearDraft(widget.conversationId);
   }
 
+  Future<void> _handleAttach() async {
+    final result = await FilePicker.pickFiles();
+    if (result != null && result.files.single.path != null) {
+      final file = result.files.single;
+      widget.onSendFile?.call(file.path!, file.name, file.size);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: [
+          IconButton(
+            icon: const Icon(Icons.attach_file),
+            onPressed: _handleAttach,
+          ),
           Expanded(
             child: TextField(
               controller: _controller,

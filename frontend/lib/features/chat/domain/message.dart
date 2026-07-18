@@ -1,4 +1,13 @@
-enum MessageStatus { pending, sending, sent, delivered, read, failed, queued, deliveredLocally }
+enum MessageStatus {
+  pending,
+  sending,
+  sent,
+  delivered,
+  read,
+  failed,
+  queued,
+  deliveredLocally,
+}
 
 class Message {
   final String id;
@@ -9,6 +18,9 @@ class Message {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool syncedToCloud;
+  final String? attachmentUri;
+  final int? attachmentSize;
+  final String? attachmentName;
 
   Message({
     required this.id,
@@ -19,5 +31,8 @@ class Message {
     required this.createdAt,
     required this.updatedAt,
     required this.syncedToCloud,
+    this.attachmentUri,
+    this.attachmentSize,
+    this.attachmentName,
   });
 }

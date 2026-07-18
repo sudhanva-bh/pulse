@@ -10,6 +10,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:frontend/core/network/websocket_manager.dart';
 import 'package:frontend/features/chat/domain/message.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/services/file_transfer_service.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -116,6 +117,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 .sendMessage(widget.conversationId, content, _currentUserId!);
           }
         },
+        onSendFile: (filePath, fileName, fileSize) async {
+          if (_currentUserId != null) {
+            final messageId = await ref
+                .read(messageRepositoryProvider)
+                .sendMessage(
+                  widget.conversationId,
+                  'Attachment: $fileName',
+                  _currentUserId!,
+                  attachmentUri: filePath,
+                  attachmentSize: fileSize,
+                  attachmentName: fileName,
+                );
+            // Start the file upload
+            ref
+                .read(fileTransferProvider.notifier)
+                .startUpload(messageId, filePath, fileName, fileSize);
+          }
+        },
       );
     }
 
@@ -194,16 +213,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       context.push('/lan/scan');
                     }
                   },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'share',
-                      child: Text('Send via Local Network'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'scan',
-                      child: Text('Receive via Local Network'),
-                    ),
-                  ],
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'share',
+                          child: Text('Send via Local Network'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'scan',
+                          child: Text('Receive via Local Network'),
+                        ),
+                      ],
                 );
               }
               return const SizedBox();
@@ -260,14 +280,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             builder: (context, ref, child) {
               final state = ref.watch(connectionStateProvider);
               final isDisconnected = state != WsConnectionState.connected;
-              
+
               bool hasUnsynced = false;
               if (messagesAsyncValue.hasValue) {
                 final messages = messagesAsyncValue.value!;
-                hasUnsynced = messages.any((m) => 
-                  !m.syncedToCloud && 
-                  m.senderId == _currentUserId && 
-                  m.status != MessageStatus.deliveredLocally
+                hasUnsynced = messages.any(
+                  (m) =>
+                      !m.syncedToCloud &&
+                      m.senderId == _currentUserId &&
+                      m.status != MessageStatus.deliveredLocally,
                 );
               }
 
@@ -283,7 +304,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
 class _LanBanner extends StatefulWidget {
   final bool shouldShow;
-  
+
   const _LanBanner({required this.shouldShow});
 
   @override
@@ -333,18 +354,26 @@ class _LanBannerState extends State<_LanBanner> {
   @override
   Widget build(BuildContext context) {
     if (!_visible) return const SizedBox.shrink();
-    
+
     return Container(
       color: Colors.blue.withValues(alpha: 0.1),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         children: [
-          const FaIcon(FontAwesomeIcons.networkWired, color: Colors.blue, size: 16),
+          const FaIcon(
+            FontAwesomeIcons.networkWired,
+            color: Colors.blue,
+            size: 16,
+          ),
           const SizedBox(width: 12),
           const Expanded(
             child: Text(
               'You have queued messages. Send via Local Network?',
-              style: TextStyle(color: Colors.blue, fontSize: 13, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.blue,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           TextButton(
@@ -352,7 +381,7 @@ class _LanBannerState extends State<_LanBanner> {
               context.push('/lan/share');
             },
             child: const Text('Share QR'),
-          )
+          ),
         ],
       ),
     );

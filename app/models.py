@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, func
+from sqlalchemy import Column, String, DateTime, func, Integer
 from sqlalchemy.dialects.postgresql import ARRAY
 from app.database import Base
 
@@ -21,6 +21,8 @@ class Message(Base):
     created_at = Column(DateTime(timezone=True), nullable=False)
     updated_at = Column(DateTime(timezone=True), nullable=False)
     synced_at = Column(DateTime(timezone=True), server_default=func.now())
+    attachment_name = Column(String, nullable=True)
+    attachment_size = Column(Integer, nullable=True)
 
 class Conversation(Base):
     __tablename__ = "conversations"

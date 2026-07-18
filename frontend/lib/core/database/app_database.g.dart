@@ -97,6 +97,39 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     ),
     defaultValue: Constant(false),
   );
+  static const VerificationMeta _attachmentUriMeta = const VerificationMeta(
+    'attachmentUri',
+  );
+  @override
+  late final GeneratedColumn<String> attachmentUri = GeneratedColumn<String>(
+    'attachment_uri',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _attachmentSizeMeta = const VerificationMeta(
+    'attachmentSize',
+  );
+  @override
+  late final GeneratedColumn<int> attachmentSize = GeneratedColumn<int>(
+    'attachment_size',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _attachmentNameMeta = const VerificationMeta(
+    'attachmentName',
+  );
+  @override
+  late final GeneratedColumn<String> attachmentName = GeneratedColumn<String>(
+    'attachment_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -107,6 +140,9 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     createdAt,
     updatedAt,
     syncedToCloud,
+    attachmentUri,
+    attachmentSize,
+    attachmentName,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -183,6 +219,33 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
         ),
       );
     }
+    if (data.containsKey('attachment_uri')) {
+      context.handle(
+        _attachmentUriMeta,
+        attachmentUri.isAcceptableOrUnknown(
+          data['attachment_uri']!,
+          _attachmentUriMeta,
+        ),
+      );
+    }
+    if (data.containsKey('attachment_size')) {
+      context.handle(
+        _attachmentSizeMeta,
+        attachmentSize.isAcceptableOrUnknown(
+          data['attachment_size']!,
+          _attachmentSizeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('attachment_name')) {
+      context.handle(
+        _attachmentNameMeta,
+        attachmentName.isAcceptableOrUnknown(
+          data['attachment_name']!,
+          _attachmentNameMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -224,6 +287,18 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
         DriftSqlType.bool,
         data['${effectivePrefix}synced_to_cloud'],
       )!,
+      attachmentUri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}attachment_uri'],
+      ),
+      attachmentSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attachment_size'],
+      ),
+      attachmentName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}attachment_name'],
+      ),
     );
   }
 
@@ -242,6 +317,9 @@ class Message extends DataClass implements Insertable<Message> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool syncedToCloud;
+  final String? attachmentUri;
+  final int? attachmentSize;
+  final String? attachmentName;
   const Message({
     required this.id,
     required this.conversationId,
@@ -251,6 +329,9 @@ class Message extends DataClass implements Insertable<Message> {
     required this.createdAt,
     required this.updatedAt,
     required this.syncedToCloud,
+    this.attachmentUri,
+    this.attachmentSize,
+    this.attachmentName,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -263,6 +344,15 @@ class Message extends DataClass implements Insertable<Message> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['synced_to_cloud'] = Variable<bool>(syncedToCloud);
+    if (!nullToAbsent || attachmentUri != null) {
+      map['attachment_uri'] = Variable<String>(attachmentUri);
+    }
+    if (!nullToAbsent || attachmentSize != null) {
+      map['attachment_size'] = Variable<int>(attachmentSize);
+    }
+    if (!nullToAbsent || attachmentName != null) {
+      map['attachment_name'] = Variable<String>(attachmentName);
+    }
     return map;
   }
 
@@ -276,6 +366,15 @@ class Message extends DataClass implements Insertable<Message> {
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       syncedToCloud: Value(syncedToCloud),
+      attachmentUri: attachmentUri == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachmentUri),
+      attachmentSize: attachmentSize == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachmentSize),
+      attachmentName: attachmentName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachmentName),
     );
   }
 
@@ -293,6 +392,9 @@ class Message extends DataClass implements Insertable<Message> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       syncedToCloud: serializer.fromJson<bool>(json['syncedToCloud']),
+      attachmentUri: serializer.fromJson<String?>(json['attachmentUri']),
+      attachmentSize: serializer.fromJson<int?>(json['attachmentSize']),
+      attachmentName: serializer.fromJson<String?>(json['attachmentName']),
     );
   }
   @override
@@ -307,6 +409,9 @@ class Message extends DataClass implements Insertable<Message> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'syncedToCloud': serializer.toJson<bool>(syncedToCloud),
+      'attachmentUri': serializer.toJson<String?>(attachmentUri),
+      'attachmentSize': serializer.toJson<int?>(attachmentSize),
+      'attachmentName': serializer.toJson<String?>(attachmentName),
     };
   }
 
@@ -319,6 +424,9 @@ class Message extends DataClass implements Insertable<Message> {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? syncedToCloud,
+    Value<String?> attachmentUri = const Value.absent(),
+    Value<int?> attachmentSize = const Value.absent(),
+    Value<String?> attachmentName = const Value.absent(),
   }) => Message(
     id: id ?? this.id,
     conversationId: conversationId ?? this.conversationId,
@@ -328,6 +436,15 @@ class Message extends DataClass implements Insertable<Message> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     syncedToCloud: syncedToCloud ?? this.syncedToCloud,
+    attachmentUri: attachmentUri.present
+        ? attachmentUri.value
+        : this.attachmentUri,
+    attachmentSize: attachmentSize.present
+        ? attachmentSize.value
+        : this.attachmentSize,
+    attachmentName: attachmentName.present
+        ? attachmentName.value
+        : this.attachmentName,
   );
   Message copyWithCompanion(MessagesCompanion data) {
     return Message(
@@ -343,6 +460,15 @@ class Message extends DataClass implements Insertable<Message> {
       syncedToCloud: data.syncedToCloud.present
           ? data.syncedToCloud.value
           : this.syncedToCloud,
+      attachmentUri: data.attachmentUri.present
+          ? data.attachmentUri.value
+          : this.attachmentUri,
+      attachmentSize: data.attachmentSize.present
+          ? data.attachmentSize.value
+          : this.attachmentSize,
+      attachmentName: data.attachmentName.present
+          ? data.attachmentName.value
+          : this.attachmentName,
     );
   }
 
@@ -356,7 +482,10 @@ class Message extends DataClass implements Insertable<Message> {
           ..write('status: $status, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('syncedToCloud: $syncedToCloud')
+          ..write('syncedToCloud: $syncedToCloud, ')
+          ..write('attachmentUri: $attachmentUri, ')
+          ..write('attachmentSize: $attachmentSize, ')
+          ..write('attachmentName: $attachmentName')
           ..write(')'))
         .toString();
   }
@@ -371,6 +500,9 @@ class Message extends DataClass implements Insertable<Message> {
     createdAt,
     updatedAt,
     syncedToCloud,
+    attachmentUri,
+    attachmentSize,
+    attachmentName,
   );
   @override
   bool operator ==(Object other) =>
@@ -383,7 +515,10 @@ class Message extends DataClass implements Insertable<Message> {
           other.status == this.status &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.syncedToCloud == this.syncedToCloud);
+          other.syncedToCloud == this.syncedToCloud &&
+          other.attachmentUri == this.attachmentUri &&
+          other.attachmentSize == this.attachmentSize &&
+          other.attachmentName == this.attachmentName);
 }
 
 class MessagesCompanion extends UpdateCompanion<Message> {
@@ -395,6 +530,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> syncedToCloud;
+  final Value<String?> attachmentUri;
+  final Value<int?> attachmentSize;
+  final Value<String?> attachmentName;
   final Value<int> rowid;
   const MessagesCompanion({
     this.id = const Value.absent(),
@@ -405,6 +543,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.syncedToCloud = const Value.absent(),
+    this.attachmentUri = const Value.absent(),
+    this.attachmentSize = const Value.absent(),
+    this.attachmentName = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MessagesCompanion.insert({
@@ -416,6 +557,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.syncedToCloud = const Value.absent(),
+    this.attachmentUri = const Value.absent(),
+    this.attachmentSize = const Value.absent(),
+    this.attachmentName = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        conversationId = Value(conversationId),
@@ -432,6 +576,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? syncedToCloud,
+    Expression<String>? attachmentUri,
+    Expression<int>? attachmentSize,
+    Expression<String>? attachmentName,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -443,6 +590,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (syncedToCloud != null) 'synced_to_cloud': syncedToCloud,
+      if (attachmentUri != null) 'attachment_uri': attachmentUri,
+      if (attachmentSize != null) 'attachment_size': attachmentSize,
+      if (attachmentName != null) 'attachment_name': attachmentName,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -456,6 +606,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<bool>? syncedToCloud,
+    Value<String?>? attachmentUri,
+    Value<int?>? attachmentSize,
+    Value<String?>? attachmentName,
     Value<int>? rowid,
   }) {
     return MessagesCompanion(
@@ -467,6 +620,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       syncedToCloud: syncedToCloud ?? this.syncedToCloud,
+      attachmentUri: attachmentUri ?? this.attachmentUri,
+      attachmentSize: attachmentSize ?? this.attachmentSize,
+      attachmentName: attachmentName ?? this.attachmentName,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -498,6 +654,15 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     if (syncedToCloud.present) {
       map['synced_to_cloud'] = Variable<bool>(syncedToCloud.value);
     }
+    if (attachmentUri.present) {
+      map['attachment_uri'] = Variable<String>(attachmentUri.value);
+    }
+    if (attachmentSize.present) {
+      map['attachment_size'] = Variable<int>(attachmentSize.value);
+    }
+    if (attachmentName.present) {
+      map['attachment_name'] = Variable<String>(attachmentName.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -515,6 +680,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncedToCloud: $syncedToCloud, ')
+          ..write('attachmentUri: $attachmentUri, ')
+          ..write('attachmentSize: $attachmentSize, ')
+          ..write('attachmentName: $attachmentName, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1084,6 +1252,9 @@ typedef $$MessagesTableCreateCompanionBuilder =
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<bool> syncedToCloud,
+      Value<String?> attachmentUri,
+      Value<int?> attachmentSize,
+      Value<String?> attachmentName,
       Value<int> rowid,
     });
 typedef $$MessagesTableUpdateCompanionBuilder =
@@ -1096,6 +1267,9 @@ typedef $$MessagesTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> syncedToCloud,
+      Value<String?> attachmentUri,
+      Value<int?> attachmentSize,
+      Value<String?> attachmentName,
       Value<int> rowid,
     });
 
@@ -1145,6 +1319,21 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<bool> get syncedToCloud => $composableBuilder(
     column: $table.syncedToCloud,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachmentUri => $composableBuilder(
+    column: $table.attachmentUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attachmentSize => $composableBuilder(
+    column: $table.attachmentSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachmentName => $composableBuilder(
+    column: $table.attachmentName,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1197,6 +1386,21 @@ class $$MessagesTableOrderingComposer
     column: $table.syncedToCloud,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get attachmentUri => $composableBuilder(
+    column: $table.attachmentUri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attachmentSize => $composableBuilder(
+    column: $table.attachmentSize,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get attachmentName => $composableBuilder(
+    column: $table.attachmentName,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$MessagesTableAnnotationComposer
@@ -1233,6 +1437,21 @@ class $$MessagesTableAnnotationComposer
 
   GeneratedColumn<bool> get syncedToCloud => $composableBuilder(
     column: $table.syncedToCloud,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get attachmentUri => $composableBuilder(
+    column: $table.attachmentUri,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get attachmentSize => $composableBuilder(
+    column: $table.attachmentSize,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get attachmentName => $composableBuilder(
+    column: $table.attachmentName,
     builder: (column) => column,
   );
 }
@@ -1273,6 +1492,9 @@ class $$MessagesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> syncedToCloud = const Value.absent(),
+                Value<String?> attachmentUri = const Value.absent(),
+                Value<int?> attachmentSize = const Value.absent(),
+                Value<String?> attachmentName = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MessagesCompanion(
                 id: id,
@@ -1283,6 +1505,9 @@ class $$MessagesTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 syncedToCloud: syncedToCloud,
+                attachmentUri: attachmentUri,
+                attachmentSize: attachmentSize,
+                attachmentName: attachmentName,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1295,6 +1520,9 @@ class $$MessagesTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<bool> syncedToCloud = const Value.absent(),
+                Value<String?> attachmentUri = const Value.absent(),
+                Value<int?> attachmentSize = const Value.absent(),
+                Value<String?> attachmentName = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MessagesCompanion.insert(
                 id: id,
@@ -1305,6 +1533,9 @@ class $$MessagesTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 syncedToCloud: syncedToCloud,
+                attachmentUri: attachmentUri,
+                attachmentSize: attachmentSize,
+                attachmentName: attachmentName,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
